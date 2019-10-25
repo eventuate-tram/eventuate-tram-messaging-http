@@ -3,10 +3,7 @@ package io.eventuate.tram.messaging.proxy.service;
 import io.eventuate.tram.consumer.common.MessageConsumerImplementation;
 import io.eventuate.tram.messaging.consumer.MessageSubscription;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
@@ -22,33 +19,27 @@ public class SubscriptionController {
   @Autowired
   private RestTemplate restTemplate;
 
-  private ConcurrentMap<SubscriberIdAndChannels, MessageSubscription> messageSubscriptions = new ConcurrentHashMap<>();
+  private ConcurrentMap<String, MessageSubscription> messageSubscriptions = new ConcurrentHashMap<>();
 
   @RequestMapping(value = "/subscriptions", method = RequestMethod.POST)
-  public void subscribe(@RequestBody SubscribeRequest subscribeRequest) {
-    SubscriberIdAndChannels subscriberIdAndChannels = new SubscriberIdAndChannels(subscribeRequest.getSubscriberId(), subscribeRequest.getChannels());
+  public String subscribe(@RequestBody SubscribeRequest subscribeRequest) {
+    String subscriptionId = UUID.randomUUID().toString();
 
-    synchronized (messageSubscriptions) {
-      Optional
-              .ofNullable(messageSubscriptions.remove(subscriberIdAndChannels))
-              .ifPresent(MessageSubscription::unsubscribe);
+    MessageSubscription messageSubscription = messageConsumerImplementation.subscribe(subscribeRequest.getSubscriberId(),
+            subscribeRequest.getChannels(),
+            message ->
+                    restTemplate.postForLocation(subscribeRequest.getCallbackUrl() + "/" + subscriptionId,
+                            new MessageResponse(message.getId(), message.getHeaders(), message.getPayload())));
 
-      MessageSubscription messageSubscription = messageConsumerImplementation.subscribe(subscribeRequest.getSubscriberId(),
-              subscribeRequest.getChannels(),
-              message ->
-                      restTemplate.postForLocation(subscribeRequest.getCallbackUrl(),
-                              new MessageResponse(message.getId(), message.getHeaders(), message.getPayload())));
+    messageSubscriptions.put(subscriptionId, messageSubscription);
 
-      messageSubscriptions.put(subscriberIdAndChannels, messageSubscription);
-    }
+    return subscriptionId;
   }
 
-  @RequestMapping(value = "/subscriptions/unsubscribe", method = RequestMethod.POST)
-  public void unsubscribe(@RequestBody UnsubscribeRequest unsubscribeRequest) {
-    SubscriberIdAndChannels subscriberIdAndChannels = new SubscriberIdAndChannels(unsubscribeRequest.getSubscriberId(), unsubscribeRequest.getChannels());
-
+  @RequestMapping(value = "/subscriptions/{subscriptionId}", method = RequestMethod.DELETE)
+  public void unsubscribe(@PathVariable(name = "subscriptionId") String subscriptionId) {
     Optional
-            .ofNullable(messageSubscriptions.remove(subscriberIdAndChannels))
+            .ofNullable(messageSubscriptions.remove(subscriptionId))
             .ifPresent(MessageSubscription::unsubscribe);
   }
 

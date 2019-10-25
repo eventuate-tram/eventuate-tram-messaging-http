@@ -6,6 +6,7 @@ public class MessageResponse {
   private String id;
   private Map<String, String> headers;
   private String payload;
+  private String subscriptionId;
 
   public MessageResponse() {
   }
@@ -38,5 +39,13 @@ public class MessageResponse {
 
   public void setPayload(String payload) {
     this.payload = payload;
+  }
+
+  public String getSubscriptionId() {
+    return subscriptionId;
+  }
+
+  public void setSubscriptionId(String subscriptionId) {
+    this.subscriptionId = subscriptionId;
   }
 }

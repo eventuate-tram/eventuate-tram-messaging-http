@@ -35,6 +35,7 @@ public class HttpMessagingProxyTest {
 
   private String subscriberId = "subscriber-" + generateId();
   private String channel = "channel-" + generateId();
+  private String subscriptionId;
 
   @Test
   public void testSuscribe() {
@@ -46,15 +47,19 @@ public class HttpMessagingProxyTest {
 
     SubscribeRequest subscribeRequest = new SubscribeRequest(subscriberId, Collections.singleton(channel), callbackUrl());
 
-    restTemplate.postForLocation(subscribeUrl(), subscribeRequest);
+    subscriptionId = restTemplate.postForObject(subscribeUrl(), subscribeRequest, String.class);
 
     Message message = sendMessage(payload, messageId);
 
     Eventually.eventually(() -> {
       Assert.assertEquals(1, testMessageContainerBean.getMessages().size());
-      Assert.assertEquals(messageId, testMessageContainerBean.getMessages().get(0).getId());
-      Assert.assertEquals(message.getHeaders(), testMessageContainerBean.getMessages().get(0).getHeaders());
-      Assert.assertEquals(payload, testMessageContainerBean.getMessages().get(0).getPayload());
+
+      MessageResponse messageResponse = testMessageContainerBean.getMessages().get(0);
+
+      Assert.assertEquals(messageId, messageResponse.getId());
+      Assert.assertEquals(message.getHeaders(), messageResponse.getHeaders());
+      Assert.assertEquals(payload, messageResponse.getPayload());
+      Assert.assertEquals(subscriptionId, messageResponse.getSubscriptionId());
     });
   }
 
@@ -63,7 +68,7 @@ public class HttpMessagingProxyTest {
   public void testUnsuscribe() throws InterruptedException {
     testSuscribe();
 
-    restTemplate.postForLocation(unsubscribeUrl(), new UnsubscribeRequest(subscriberId, Collections.singleton(channel)));
+    restTemplate.delete(unsubscribeUrl(subscriptionId));
 
     Thread.sleep(3000);
 
@@ -85,20 +90,20 @@ public class HttpMessagingProxyTest {
   }
 
 
-  private String unsubscribeUrl() {
-    return subscribeUrl() + "unsubscribe";
+  private String unsubscribeUrl(String subscriptionId) {
+    return host() + "/unsubscribe/" + subscriptionId;
   }
 
   private String subscribeUrl() {
-    return host() + "subscriptions/";
+    return host() + "/subscriptions";
   }
 
   private String callbackUrl() {
-    return host() + "messages";
+    return host() + "/messages";
   }
 
   private String host() {
-    return String.format("http://localhost:%s/", port);
+    return String.format("http://localhost:%s", port);
   }
 
   private String generateId() {

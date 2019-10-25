@@ -1,10 +1,7 @@
 package io.eventuate.tram.messaging.proxy.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class TestMessageController {
@@ -12,8 +9,11 @@ public class TestMessageController {
   @Autowired
   private TestMessageContainerBean testMessageContainerBean;
 
-  @RequestMapping(value = "/messages", method = RequestMethod.POST)
-  public void handleMessage(@RequestBody MessageResponse messageResponse) {
+  @RequestMapping(value = "/messages/{subscriptionId}", method = RequestMethod.POST)
+  public void handleMessage(@RequestBody MessageResponse messageResponse,
+                            @PathVariable(name = "subscriptionId") String subscriptionId) {
+
+    messageResponse.setSubscriptionId(subscriptionId);
     testMessageContainerBean.getMessages().add(messageResponse);
   }
 }
