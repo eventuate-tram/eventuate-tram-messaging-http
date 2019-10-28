@@ -1,17 +1,16 @@
-package io.eventuate.tram.messaging.proxy.service;
+package io.eventuate.tram.messaging.http;
 
 import java.util.Map;
 
-public class MessageResponse {
+public class HttpMessage {
   private String id;
   private Map<String, String> headers;
   private String payload;
-  private String subscriptionId;
 
-  public MessageResponse() {
+  public HttpMessage() {
   }
 
-  public MessageResponse(String id, Map<String, String> headers, String payload) {
+  public HttpMessage(String id, Map<String, String> headers, String payload) {
     this.id = id;
     this.headers = headers;
     this.payload = payload;
@@ -39,13 +38,5 @@ public class MessageResponse {
 
   public void setPayload(String payload) {
     this.payload = payload;
-  }
-
-  public String getSubscriptionId() {
-    return subscriptionId;
-  }
-
-  public void setSubscriptionId(String subscriptionId) {
-    this.subscriptionId = subscriptionId;
   }
 }

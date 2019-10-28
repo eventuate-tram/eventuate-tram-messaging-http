@@ -1,14 +1,12 @@
 dependencies {
+    compile project(":eventuate-tram-messaging-http-common")
+
     compile "io.eventuate.tram.core:eventuate-tram-consumer-jdbc-spring:$eventuateTramVersion"
     compile "io.eventuate.tram.core:eventuate-tram-consumer-kafka-spring:$eventuateTramVersion"
 
     compile "org.springframework.boot:spring-boot-starter"
     compile "org.springframework.boot:spring-boot-starter-actuator"
     compile "org.springframework.boot:spring-boot-starter-web"
-
-    testCompile "io.eventuate.tram.core:eventuate-tram-producer-jdbc-spring:$eventuateTramVersion"
-    testCompile "io.eventuate.util:eventuate-util-test:$eventuateUtilVersion"
-    testCompile "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
 }
 
 apply plugin: 'org.springframework.boot'

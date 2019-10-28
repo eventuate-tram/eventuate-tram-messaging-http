@@ -1,0 +1,57 @@
+version: 2
+jobs:
+  build-and-test-all-mysql-binlog:
+    machine: true
+    working_directory: ~/eventuate-tram-messaging-http
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - eventuate-tram-messaging-http-{{ checksum "gradle.properties" }}
+            - eventuate-tram-messaging-http-
+      - run: TERM=dumb ./gradlew testClasses
+      - save_cache:
+          paths:
+            - ~/.gradle
+          key: eventuate-tram-messaging-http-{{ checksum "gradle.properties" }}
+      - run: TERM=dumb ./build-and-test-all-mysql-binlog.sh
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/junit ~/container-logs ~/container-logs
+            find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ~/junit/ \;
+            sudo bash -c 'find /var/lib/docker/containers -name "*-json.log" -exec cp {} ~/container-logs \;'
+            sudo bash -c 'find  ~/container-logs -type f -exec chown circleci {} \;'
+          when: always
+      - store_test_results:
+          path: ~/junit
+      - store_artifacts:
+          path: ~/junit
+      - store_artifacts:
+          path: ~/container-logs
+  deploy-artifacts:
+    machine: true
+    working_directory: ~/eventuate-tram-messaging-http
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - eventuate-tram-messaging-http-{{ checksum "gradle.properties" }}
+            - eventuate-tram-messaging-http-
+      - run: TERM=dumb ./gradlew testClasses
+      - save_cache:
+          paths:
+            - ~/.gradle
+          key: eventuate-tram-messaging-http-{{ checksum "gradle.properties" }}
+      - run:
+          name: Publish artifacts
+          command: |
+            TERM=dumb ./deploy-artifacts.sh
+workflows:
+  version: 2
+  build-test-and-deploy:
+    jobs:
+      - build-and-test-all-mysql-binlog
+      - deploy-artifacts:
+          requires:
+            - build-and-test-all-mysql-binlog

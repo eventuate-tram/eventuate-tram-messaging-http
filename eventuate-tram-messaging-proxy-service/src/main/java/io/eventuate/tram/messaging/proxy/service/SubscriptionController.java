@@ -2,6 +2,8 @@ package io.eventuate.tram.messaging.proxy.service;
 
 import io.eventuate.tram.consumer.common.MessageConsumerImplementation;
 import io.eventuate.tram.messaging.consumer.MessageSubscription;
+import io.eventuate.tram.messaging.http.HttpMessage;
+import io.eventuate.tram.messaging.http.SubscribeRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -22,24 +24,21 @@ public class SubscriptionController {
   private ConcurrentMap<String, MessageSubscription> messageSubscriptions = new ConcurrentHashMap<>();
 
   @RequestMapping(value = "/subscriptions", method = RequestMethod.POST)
-  public String subscribe(@RequestBody SubscribeRequest subscribeRequest) {
-    String subscriptionId = UUID.randomUUID().toString();
-
+  public void subscribe(@RequestBody SubscribeRequest subscribeRequest) {
     MessageSubscription messageSubscription = messageConsumerImplementation.subscribe(subscribeRequest.getSubscriberId(),
             subscribeRequest.getChannels(),
-            message ->
-                    restTemplate.postForLocation(subscribeRequest.getCallbackUrl() + "/" + subscriptionId,
-                            new MessageResponse(message.getId(), message.getHeaders(), message.getPayload())));
+            message -> {
+              restTemplate.postForLocation(subscribeRequest.getCallbackUrl() + "/" + subscribeRequest.getSubscriberId(),
+                      new HttpMessage(message.getId(), message.getHeaders(), message.getPayload()));
+            });
 
-    messageSubscriptions.put(subscriptionId, messageSubscription);
-
-    return subscriptionId;
+    messageSubscriptions.put(subscribeRequest.getSubscriberId(), messageSubscription);
   }
 
-  @RequestMapping(value = "/subscriptions/{subscriptionId}", method = RequestMethod.DELETE)
-  public void unsubscribe(@PathVariable(name = "subscriptionId") String subscriptionId) {
+  @RequestMapping(value = "/subscriptions/{subscriberId}", method = RequestMethod.DELETE)
+  public void unsubscribe(@PathVariable(name = "subscriberId") String subscriberId) {
     Optional
-            .ofNullable(messageSubscriptions.remove(subscriptionId))
+            .ofNullable(messageSubscriptions.remove(subscriberId))
             .ifPresent(MessageSubscription::unsubscribe);
   }
 
