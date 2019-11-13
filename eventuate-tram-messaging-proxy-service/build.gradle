@@ -1,6 +1,4 @@
 dependencies {
-    compile project(":eventuate-tram-messaging-http-common")
-
     compile "io.eventuate.tram.core:eventuate-tram-consumer-jdbc-spring:$eventuateTramVersion"
     compile "io.eventuate.tram.core:eventuate-tram-consumer-kafka-spring:$eventuateTramVersion"
 

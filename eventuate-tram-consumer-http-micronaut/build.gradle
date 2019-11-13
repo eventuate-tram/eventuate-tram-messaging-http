@@ -14,14 +14,10 @@ dependencyManagement {
 }
 
 dependencies {
-    compile project(":eventuate-tram-messaging-http-common")
+    compile "io.micronaut:micronaut-http-client"
 
-    compile "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
-
-    compile "io.eventuate.tram.core:eventuate-tram-messaging-micronaut:$eventuateTramVersion"
-    compile "io.eventuate.tram.core:eventuate-tram-consumer-kafka:$eventuateTramVersion"
-    compile "io.eventuate.tram.core:eventuate-tram-consumer-common-micronaut:$eventuateTramVersion"
-    compile "io.eventuate.messaging.kafka:eventuate-messaging-kafka-consumer-micronaut:$eventuateMessagingKafkaVersion"
+    compile "io.eventuate.tram.core:eventuate-tram-consumer-common:$eventuateTramVersion"
+    compile "io.eventuate.common:eventuate-common-jdbc-micronaut:$eventuateCommonVersion"
 
     annotationProcessor "io.micronaut:micronaut-inject-java"
     annotationProcessor "io.micronaut:micronaut-validation"
@@ -30,6 +26,8 @@ dependencies {
     compile "io.micronaut:micronaut-validation"
     compile "io.micronaut:micronaut-runtime"
 
+    testCompile "junit:junit:4.12"
+
     testCompile "io.micronaut:micronaut-http-server-netty"
     testAnnotationProcessor "io.micronaut:micronaut-inject-java"
     testCompile "org.junit.jupiter:junit-jupiter-api"
@@ -37,6 +35,7 @@ dependencies {
     testRuntime "org.junit.jupiter:junit-jupiter-engine"
     testRuntime 'io.micronaut.configuration:micronaut-jdbc-hikari'
 
+    testCompile "io.eventuate.common:eventuate-common-jdbc-micronaut-spring:$eventuateCommonVersion"
     testCompile "io.eventuate.tram.core:eventuate-tram-producer-jdbc-micronaut:$eventuateTramVersion"
     testCompile "io.eventuate.util:eventuate-util-test:$eventuateUtilVersion"
 }

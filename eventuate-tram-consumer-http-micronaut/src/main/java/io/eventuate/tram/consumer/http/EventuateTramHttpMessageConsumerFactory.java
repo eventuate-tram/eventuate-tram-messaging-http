@@ -10,9 +10,9 @@ import javax.inject.Singleton;
 @Factory
 public class EventuateTramHttpMessageConsumerFactory {
   @Singleton
-  public MessageConsumerImplementation messageConsumerImplementation(EventuateTramHttpMessageController eventuateTramHttpMessageController,
-                                                                     @Value("${eventuate.http.proxy.base.url}") String httpProxyBaseUrl,
+  public MessageConsumerImplementation messageConsumerImplementation(ProxyClient proxyClient,
+                                                                     EventuateTramHttpMessageController eventuateTramHttpMessageController,
                                                                      @Value("${eventuate.http.consumer.base.url}") String httpConsumerBaseUrl) {
-    return new EventuateTramHttpMessageConsumer(eventuateTramHttpMessageController, httpProxyBaseUrl, httpConsumerBaseUrl);
+    return new EventuateTramHttpMessageConsumer(proxyClient, eventuateTramHttpMessageController, httpConsumerBaseUrl);
   }
 }

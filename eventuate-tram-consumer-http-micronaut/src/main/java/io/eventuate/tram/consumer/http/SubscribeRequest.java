@@ -1,7 +1,10 @@
-package io.eventuate.tram.messaging.http;
+package io.eventuate.tram.consumer.http;
+
+import io.micronaut.core.annotation.Introspected;
 
 import java.util.Set;
 
+@Introspected
 public class SubscribeRequest {
   private String subscriberId;
   private Set<String> channels;

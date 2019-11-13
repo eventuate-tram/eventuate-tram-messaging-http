@@ -1,5 +1,6 @@
 package io.eventuate.tram.messaging.proxy.service;
 
+import io.eventuate.common.jdbc.spring.EventuateCommonJdbcOperationsConfiguration;
 import io.eventuate.tram.consumer.jdbc.spring.TramConsumerJdbcAutoConfiguration;
 import io.eventuate.tram.consumer.kafka.spring.EventuateTramKafkaMessageConsumerConfiguration;
 import io.eventuate.tram.messaging.common.ChannelMapping;
@@ -13,7 +14,7 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.web.client.RestTemplate;
 
 @Configuration
-@Import({TramConsumerJdbcAutoConfiguration.class, EventuateTramKafkaMessageConsumerConfiguration.class, })
+@Import({TramConsumerJdbcAutoConfiguration.class, EventuateTramKafkaMessageConsumerConfiguration.class, EventuateCommonJdbcOperationsConfiguration.class})
 public class ProxyConfiguration {
 
   @Bean

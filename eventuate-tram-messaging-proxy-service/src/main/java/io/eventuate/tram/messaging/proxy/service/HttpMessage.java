@@ -1,4 +1,4 @@
-package io.eventuate.tram.messaging.http;
+package io.eventuate.tram.messaging.proxy.service;
 
 import java.util.Map;
 

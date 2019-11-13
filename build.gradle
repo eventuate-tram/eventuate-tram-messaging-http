@@ -12,6 +12,10 @@ buildscript {
 
 apply plugin: 'docker-compose'
 
+allprojects {
+    group = "io.eventuate.messaging.http"
+}
+
 subprojects {
 
     apply plugin: "java"

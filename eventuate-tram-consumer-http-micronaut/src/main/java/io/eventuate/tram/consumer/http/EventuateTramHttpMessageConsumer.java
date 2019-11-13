@@ -3,8 +3,6 @@ package io.eventuate.tram.consumer.http;
 import io.eventuate.tram.consumer.common.MessageConsumerImplementation;
 import io.eventuate.tram.messaging.consumer.MessageHandler;
 import io.eventuate.tram.messaging.consumer.MessageSubscription;
-import io.eventuate.tram.messaging.http.SubscribeRequest;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -15,25 +13,23 @@ public class EventuateTramHttpMessageConsumer implements MessageConsumerImplemen
   private final String id = UUID.randomUUID().toString();
 
   private EventuateTramHttpMessageController eventuateTramHttpMessageController;
-  private String httpProxyBaseUrl;
   private String httpConsumerBaseUrl;
-  private RestTemplate restTemplate = new RestTemplate();
+  private ProxyClient proxyClient;
   private Set<String> subscriptions = new HashSet<>();
 
-  public EventuateTramHttpMessageConsumer(EventuateTramHttpMessageController eventuateTramHttpMessageController,
-                                          String httpProxyBaseUrl,
+  public EventuateTramHttpMessageConsumer(ProxyClient proxyClient,
+                                          EventuateTramHttpMessageController eventuateTramHttpMessageController,
                                           String httpConsumerBaseUrl) {
 
+    this.proxyClient = proxyClient;
     this.eventuateTramHttpMessageController = eventuateTramHttpMessageController;
-    this.httpProxyBaseUrl = httpProxyBaseUrl;
     this.httpConsumerBaseUrl = httpConsumerBaseUrl;
   }
 
   @Override
   public MessageSubscription subscribe(String subscriberId, Set<String> channels, MessageHandler handler) {
 
-    restTemplate.postForLocation(httpProxyBaseUrl,
-            new SubscribeRequest(subscriberId, channels, httpConsumerBaseUrl), String.class);
+    proxyClient.subscribe(new SubscribeRequest(subscriberId, channels, httpConsumerBaseUrl));
 
     subscriptions.add(subscriberId);
 
@@ -57,6 +53,6 @@ public class EventuateTramHttpMessageConsumer implements MessageConsumerImplemen
 
   private void unsubscribe(String subscriberId) {
     eventuateTramHttpMessageController.removeSubscriptionHandler(subscriberId);
-    restTemplate.delete(httpProxyBaseUrl + "/" + subscriberId);
+    proxyClient.unsubscribe(subscriberId);
   }
 }

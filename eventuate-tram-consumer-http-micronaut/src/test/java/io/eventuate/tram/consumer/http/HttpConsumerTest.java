@@ -1,5 +1,6 @@
 package io.eventuate.tram.consumer.http;
 
+import io.eventuate.common.jdbc.EventuateTransactionTemplate;
 import io.eventuate.tram.consumer.common.MessageConsumerImplementation;
 import io.eventuate.tram.messaging.common.Message;
 import io.eventuate.tram.messaging.producer.MessageBuilder;
@@ -9,7 +10,6 @@ import io.micronaut.test.annotation.MicronautTest;
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Collections;
 import java.util.UUID;
@@ -28,6 +28,12 @@ public class HttpConsumerTest {
 
   @Inject
   private EventuateTramHttpMessageController eventuateTramHttpMessageController;
+
+  @Inject
+  private EventuateTransactionTemplate eventuateTransactionTemplate;
+
+  @Inject
+  private ProxyClient proxyClient;
 
   @Value("${eventuate.http.proxy.base.url}")
   private String httpProxyBaseUrl;
@@ -93,8 +99,8 @@ public class HttpConsumerTest {
     messages = new LinkedBlockingQueue<>();
 
     EventuateTramHttpMessageConsumer eventuateTramHttpMessageConsumer =
-            new EventuateTramHttpMessageConsumer(eventuateTramHttpMessageController,
-                    httpProxyBaseUrl,
+            new EventuateTramHttpMessageConsumer(proxyClient,
+                    eventuateTramHttpMessageController,
                     "http://localhost:" + micronautServerPort + "/someNonExistentAddress");
 
     eventuateTramHttpMessageConsumer.subscribe(subscriberId, Collections.singleton(channel), messages::add);

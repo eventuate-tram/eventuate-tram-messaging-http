@@ -1,3 +1,2 @@
-include 'eventuate-tram-messaging-http-common'
 include 'eventuate-tram-messaging-proxy-service'
 include 'eventuate-tram-consumer-http-micronaut'
