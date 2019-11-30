@@ -6,7 +6,7 @@ docker="./gradlew ${DATABASE?}${MODE?}Compose"
 
 . ./set-env-${DATABASE?}.sh
 
-./gradlew testClasses
+./gradlew testClasses assemble
 
 ${docker}Down
 ${docker}Build
