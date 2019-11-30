@@ -30,7 +30,7 @@ services:
     build: ./eventuate-tram-messaging-proxy-service
     ports:
       - "8098:8080"
-    links:
+    depends_on:
       - mysql
       - kafka
       - zookeeper

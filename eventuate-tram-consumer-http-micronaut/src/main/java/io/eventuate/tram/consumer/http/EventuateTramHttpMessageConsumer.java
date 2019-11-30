@@ -1,6 +1,7 @@
 package io.eventuate.tram.consumer.http;
 
 import io.eventuate.tram.consumer.common.MessageConsumerImplementation;
+import io.eventuate.tram.consumer.http.common.SubscribeRequest;
 import io.eventuate.tram.messaging.consumer.MessageHandler;
 import io.eventuate.tram.messaging.consumer.MessageSubscription;
 

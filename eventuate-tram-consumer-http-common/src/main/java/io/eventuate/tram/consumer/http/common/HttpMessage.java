@@ -1,7 +1,10 @@
-package io.eventuate.tram.messaging.proxy.service;
+package io.eventuate.tram.consumer.http.common;
+
+import io.micronaut.core.annotation.Introspected;
 
 import java.util.Map;
 
+@Introspected
 public class HttpMessage {
   private String id;
   private Map<String, String> headers;

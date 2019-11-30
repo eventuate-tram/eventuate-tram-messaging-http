@@ -2,11 +2,6 @@ plugins {
     id "io.spring.dependency-management"
 }
 
-repositories {
-    mavenCentral()
-    maven { url "https://jcenter.bintray.com" }
-}
-
 dependencyManagement {
     imports {
         mavenBom "io.micronaut:micronaut-bom:$micronautVersion"
@@ -14,6 +9,9 @@ dependencyManagement {
 }
 
 dependencies {
+
+    compile project(":eventuate-tram-consumer-http-common")
+
     compile "io.micronaut:micronaut-http-client"
 
     compile "io.eventuate.tram.core:eventuate-tram-consumer-common:$eventuateTramVersion"

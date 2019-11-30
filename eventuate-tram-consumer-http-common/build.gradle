@@ -1,0 +1,4 @@
+
+dependencies {
+    compile "io.micronaut:micronaut-core:$micronautVersion"
+}

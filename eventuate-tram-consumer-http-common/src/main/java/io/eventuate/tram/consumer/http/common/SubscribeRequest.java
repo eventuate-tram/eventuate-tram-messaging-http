@@ -1,4 +1,4 @@
-package io.eventuate.tram.consumer.http;
+package io.eventuate.tram.consumer.http.common;
 
 import io.micronaut.core.annotation.Introspected;
 

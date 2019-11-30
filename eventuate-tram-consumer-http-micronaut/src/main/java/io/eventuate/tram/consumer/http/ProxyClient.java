@@ -1,5 +1,6 @@
 package io.eventuate.tram.consumer.http;
 
+import io.eventuate.tram.consumer.http.common.SubscribeRequest;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Delete;
 import io.micronaut.http.annotation.Post;
