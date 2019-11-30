@@ -28,6 +28,7 @@ services:
 
   proxy:
     build: ./eventuate-tram-messaging-proxy-service
+    image: eventuateio/eventuate-tram-http-proxy-service:$PROXY_SERVICE_VERSION
     ports:
       - "8098:8080"
     depends_on:
