@@ -23,7 +23,7 @@ VERSION=$BRANCH
 $PREFIX ./gradlew -P version=${VERSION} \
   -P bintrayRepoType=${BINTRAY_REPO_TYPE} \
   -P deployUrl=https://dl.bintray.com/eventuateio-oss/eventuate-maven-${BINTRAY_REPO_TYPE} \
-  testClasses bintrayUpload
+  testClasses assemble bintrayUpload
 
 docker login -u ${DOCKER_USER_ID?} -p ${DOCKER_PASSWORD?}
 
