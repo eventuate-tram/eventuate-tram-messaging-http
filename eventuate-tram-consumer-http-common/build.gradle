@@ -1,4 +1,15 @@
+plugins {
+    id "io.spring.dependency-management"
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "io.micronaut:micronaut-bom:$micronautVersion"
+    }
+}
 
 dependencies {
     compile "io.micronaut:micronaut-core:$micronautVersion"
+    annotationProcessor "io.micronaut:micronaut-inject-java"
+    compile "io.micronaut:micronaut-inject"
 }

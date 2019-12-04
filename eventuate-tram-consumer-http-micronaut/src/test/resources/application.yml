@@ -1,3 +1,5 @@
+jackson:
+  bean-introspection-module: true
 datasources:
   default:
     url: ${DATASOURCE_URL}

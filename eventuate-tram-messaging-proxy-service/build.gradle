@@ -2,7 +2,9 @@ apply plugin: 'org.springframework.boot'
 apply plugin: "io.spring.dependency-management"
 
 dependencies {
-    compile project(":eventuate-tram-consumer-http-common")
+    compile (project(":eventuate-tram-consumer-http-common")) {
+        exclude group: "io.micronaut"
+    }
 
     compile "io.eventuate.tram.core:eventuate-tram-consumer-jdbc-spring:$eventuateTramVersion"
     compile "io.eventuate.tram.core:eventuate-tram-consumer-kafka-spring:$eventuateTramVersion"
