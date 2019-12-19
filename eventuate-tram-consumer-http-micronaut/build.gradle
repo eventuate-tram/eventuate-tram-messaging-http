@@ -15,7 +15,6 @@ dependencies {
     compile "io.micronaut:micronaut-http-client"
 
     compile "io.eventuate.tram.core:eventuate-tram-consumer-common:$eventuateTramVersion"
-    compile "io.eventuate.common:eventuate-common-jdbc-micronaut:$eventuateCommonVersion"
 
     annotationProcessor "io.micronaut:micronaut-inject-java"
     annotationProcessor "io.micronaut:micronaut-validation"
