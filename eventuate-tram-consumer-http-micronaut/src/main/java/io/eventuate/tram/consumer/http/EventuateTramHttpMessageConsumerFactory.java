@@ -4,15 +4,15 @@ import io.eventuate.tram.consumer.common.MessageConsumerImplementation;
 import io.micronaut.context.annotation.Factory;
 import io.micronaut.context.annotation.Value;
 
-import javax.annotation.Nullable;
 import javax.inject.Singleton;
 
 @Factory
 public class EventuateTramHttpMessageConsumerFactory {
   @Singleton
   public MessageConsumerImplementation messageConsumerImplementation(ProxyClient proxyClient,
+                                                                     HeartbeatService heartbeatService,
                                                                      EventuateTramHttpMessageController eventuateTramHttpMessageController,
-                                                                     @Value("${eventuate.http.consumer.base.url}") String httpConsumerBaseUrl) {
-    return new EventuateTramHttpMessageConsumer(proxyClient, eventuateTramHttpMessageController, httpConsumerBaseUrl);
+                                                                     HttpConsumerProperties httpConsumerProperties) {
+    return new EventuateTramHttpMessageConsumer(proxyClient, heartbeatService, eventuateTramHttpMessageController, httpConsumerProperties.getHttpConsumerBaseUrl());
   }
 }

@@ -62,6 +62,8 @@ public class SubscriptionController {
     Optional
             .ofNullable(messageSubscriptions.remove(subscriptionInstanceId))
             .ifPresent(MessageSubscription::unsubscribe);
+
+    messageSubscriptionUpdateTime.remove(subscriptionInstanceId);
   }
 
   private String generateId() {

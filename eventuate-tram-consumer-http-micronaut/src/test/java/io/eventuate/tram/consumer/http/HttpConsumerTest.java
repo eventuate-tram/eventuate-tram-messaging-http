@@ -35,6 +35,9 @@ public class HttpConsumerTest {
   @Inject
   private ProxyClient proxyClient;
 
+  @Inject
+  private HeartbeatService heartbeatService;
+
   @Value("${eventuate.http.proxy.base.url}")
   private String httpProxyBaseUrl;
 
@@ -100,6 +103,7 @@ public class HttpConsumerTest {
 
     EventuateTramHttpMessageConsumer eventuateTramHttpMessageConsumer =
             new EventuateTramHttpMessageConsumer(proxyClient,
+                    heartbeatService,
                     eventuateTramHttpMessageController,
                     "http://localhost:" + micronautServerPort + "/someNonExistentAddress");
 

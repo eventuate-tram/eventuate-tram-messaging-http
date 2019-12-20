@@ -12,6 +12,9 @@ public interface ProxyClient {
   @Post("/")
   String subscribe(@Body SubscribeRequest subscribeRequest);
 
-  @Delete("/{subscriberId}")
-  void unsubscribe(String subscriberId);
+  @Post("/{subscriptionInstanceId}/heartbeat")
+  void heartbeat(String subscriptionInstanceId);
+
+  @Delete("/{subscriptionInstanceId}")
+  void unsubscribe(String subscriptionInstanceId);
 }

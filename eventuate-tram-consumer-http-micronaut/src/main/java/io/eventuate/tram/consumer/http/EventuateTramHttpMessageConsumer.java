@@ -16,13 +16,16 @@ public class EventuateTramHttpMessageConsumer implements MessageConsumerImplemen
   private EventuateTramHttpMessageController eventuateTramHttpMessageController;
   private String httpConsumerBaseUrl;
   private ProxyClient proxyClient;
+  private HeartbeatService heartbeatService;
   private Set<String> subscriptions = new HashSet<>();
 
   public EventuateTramHttpMessageConsumer(ProxyClient proxyClient,
+                                          HeartbeatService heartbeatService,
                                           EventuateTramHttpMessageController eventuateTramHttpMessageController,
                                           String httpConsumerBaseUrl) {
 
     this.proxyClient = proxyClient;
+    this.heartbeatService = heartbeatService;
     this.eventuateTramHttpMessageController = eventuateTramHttpMessageController;
     this.httpConsumerBaseUrl = httpConsumerBaseUrl;
   }
@@ -31,6 +34,8 @@ public class EventuateTramHttpMessageConsumer implements MessageConsumerImplemen
   public MessageSubscription subscribe(String subscriberId, Set<String> channels, MessageHandler handler) {
 
     String subscriptionInstanceId = proxyClient.subscribe(new SubscribeRequest(subscriberId, channels, httpConsumerBaseUrl));
+
+    heartbeatService.addSubscription(subscriptionInstanceId);
 
     subscriptions.add(subscriptionInstanceId);
 
@@ -53,6 +58,7 @@ public class EventuateTramHttpMessageConsumer implements MessageConsumerImplemen
   }
 
   private void unsubscribe(String subscriptionInstanceId) {
+    heartbeatService.removeSubscription(subscriptionInstanceId);
     eventuateTramHttpMessageController.removeSubscriptionHandler(subscriptionInstanceId);
     proxyClient.unsubscribe(subscriptionInstanceId);
   }
