@@ -15,19 +15,19 @@ public class EventuateTramHttpMessageController {
 
   private ConcurrentMap<String, MessageHandler> messageHandlers = new ConcurrentHashMap<>();
 
-  @Post(value = "/messages/{subscriberId}")
-  public void messageReceived(HttpMessage httpMessage, String subscriberId) {
+  @Post(value = "/messages/{subscriptionInstanceId}")
+  public void messageReceived(HttpMessage httpMessage, String subscriptionInstanceId) {
     Optional
-            .ofNullable(messageHandlers.get(subscriberId))
+            .ofNullable(messageHandlers.get(subscriptionInstanceId))
             .ifPresent(messageHandler ->
                 messageHandler.accept(new MessageImpl(httpMessage.getPayload(), httpMessage.getHeaders())));
   }
 
-  public void addSubscriptionHandler(String subscriberId, MessageHandler messageHandler) {
-    messageHandlers.put(subscriberId, messageHandler);
+  public void addSubscriptionHandler(String subscriptionInstanceId, MessageHandler messageHandler) {
+    messageHandlers.put(subscriptionInstanceId, messageHandler);
   }
 
-  public void removeSubscriptionHandler(String subscriberId) {
-    messageHandlers.remove(subscriberId);
+  public void removeSubscriptionHandler(String subscriptionInstanceId) {
+    messageHandlers.remove(subscriptionInstanceId);
   }
 }

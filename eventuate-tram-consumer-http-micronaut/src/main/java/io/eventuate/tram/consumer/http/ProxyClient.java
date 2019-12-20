@@ -10,7 +10,7 @@ import io.micronaut.http.client.annotation.Client;
 public interface ProxyClient {
 
   @Post("/")
-  void subscribe(@Body SubscribeRequest subscribeRequest);
+  String subscribe(@Body SubscribeRequest subscribeRequest);
 
   @Delete("/{subscriberId}")
   void unsubscribe(String subscriberId);

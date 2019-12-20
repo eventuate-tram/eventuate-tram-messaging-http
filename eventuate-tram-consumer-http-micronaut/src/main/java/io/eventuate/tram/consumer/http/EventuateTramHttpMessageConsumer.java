@@ -30,15 +30,15 @@ public class EventuateTramHttpMessageConsumer implements MessageConsumerImplemen
   @Override
   public MessageSubscription subscribe(String subscriberId, Set<String> channels, MessageHandler handler) {
 
-    proxyClient.subscribe(new SubscribeRequest(subscriberId, channels, httpConsumerBaseUrl));
+    String subscriptionInstanceId = proxyClient.subscribe(new SubscribeRequest(subscriberId, channels, httpConsumerBaseUrl));
 
-    subscriptions.add(subscriberId);
+    subscriptions.add(subscriptionInstanceId);
 
-    eventuateTramHttpMessageController.addSubscriptionHandler(subscriberId, handler);
+    eventuateTramHttpMessageController.addSubscriptionHandler(subscriptionInstanceId, handler);
 
     return () -> {
-      subscriptions.remove(subscriberId);
-      unsubscribe(subscriberId);
+      subscriptions.remove(subscriptionInstanceId);
+      unsubscribe(subscriptionInstanceId);
     };
   }
 
@@ -52,8 +52,8 @@ public class EventuateTramHttpMessageConsumer implements MessageConsumerImplemen
     subscriptions.forEach(this::unsubscribe);
   }
 
-  private void unsubscribe(String subscriberId) {
-    eventuateTramHttpMessageController.removeSubscriptionHandler(subscriberId);
-    proxyClient.unsubscribe(subscriberId);
+  private void unsubscribe(String subscriptionInstanceId) {
+    eventuateTramHttpMessageController.removeSubscriptionHandler(subscriptionInstanceId);
+    proxyClient.unsubscribe(subscriptionInstanceId);
   }
 }

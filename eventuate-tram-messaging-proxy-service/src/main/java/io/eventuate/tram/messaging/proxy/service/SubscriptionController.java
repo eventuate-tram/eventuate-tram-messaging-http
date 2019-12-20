@@ -9,11 +9,15 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 @RestController
 public class SubscriptionController {
+
+  @Autowired
+  private ProxyProperties proxyProperties;
 
   @Autowired
   private MessageConsumerImplementation messageConsumerImplementation;
@@ -22,24 +26,46 @@ public class SubscriptionController {
   private RestTemplate restTemplate;
 
   private ConcurrentMap<String, MessageSubscription> messageSubscriptions = new ConcurrentHashMap<>();
+  private ConcurrentMap<String, Long> messageSubscriptionUpdateTime = new ConcurrentHashMap<>();
 
   @RequestMapping(value = "/subscriptions", method = RequestMethod.POST)
-  public void subscribe(@RequestBody SubscribeRequest subscribeRequest) {
+  public String subscribe(@RequestBody SubscribeRequest subscribeRequest) {
+    String subscriptionInstanceId = generateId();
+
+    messageSubscriptionUpdateTime.put(subscriptionInstanceId, System.currentTimeMillis());
+
     MessageSubscription messageSubscription = messageConsumerImplementation.subscribe(subscribeRequest.getSubscriberId(),
             subscribeRequest.getChannels(),
             message -> {
-              restTemplate.postForLocation(subscribeRequest.getCallbackUrl() + "/" + subscribeRequest.getSubscriberId(),
+
+              if (System.currentTimeMillis() - messageSubscriptionUpdateTime.get(subscriptionInstanceId) > proxyProperties.getMaxHeartbeatInterval()) {
+                unsubscribe(subscriptionInstanceId);
+                throw new RuntimeException("Heartbeat timeout.");
+              }
+
+              restTemplate.postForLocation(subscribeRequest.getCallbackUrl() + "/" + subscriptionInstanceId,
                       new HttpMessage(message.getId(), message.getHeaders(), message.getPayload()));
             });
 
-    messageSubscriptions.put(subscribeRequest.getSubscriberId(), messageSubscription);
+    messageSubscriptions.put(subscriptionInstanceId, messageSubscription);
+
+    return subscriptionInstanceId;
   }
 
-  @RequestMapping(value = "/subscriptions/{subscriberId}", method = RequestMethod.DELETE)
-  public void unsubscribe(@PathVariable(name = "subscriberId") String subscriberId) {
+  @RequestMapping(value = "/subscriptions/{subscriptionInstanceId}/heartbeat", method = RequestMethod.POST)
+  public void heartbeat(@PathVariable(name = "subscriptionInstanceId") String subscriptionInstanceId) {
+    messageSubscriptionUpdateTime.put(subscriptionInstanceId, System.currentTimeMillis());
+  }
+
+  @RequestMapping(value = "/subscriptions/{subscriptionInstanceId}", method = RequestMethod.DELETE)
+  public void unsubscribe(@PathVariable(name = "subscriptionInstanceId") String subscriptionInstanceId) {
     Optional
-            .ofNullable(messageSubscriptions.remove(subscriberId))
+            .ofNullable(messageSubscriptions.remove(subscriptionInstanceId))
             .ifPresent(MessageSubscription::unsubscribe);
+  }
+
+  private String generateId() {
+    return UUID.randomUUID().toString();
   }
 
 }
