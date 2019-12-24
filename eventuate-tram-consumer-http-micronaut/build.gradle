@@ -12,6 +12,8 @@ dependencies {
 
     compile project(":eventuate-tram-consumer-http-common")
 
+    compile 'io.github.resilience4j:resilience4j-circuitbreaker:1.2.0'
+    compile 'io.github.resilience4j:resilience4j-retry:1.2.0'
     compile "io.micronaut:micronaut-http-client"
 
     compile "io.eventuate.tram.core:eventuate-tram-consumer-common:$eventuateTramVersion"
@@ -23,6 +25,8 @@ dependencies {
     compile "io.micronaut:micronaut-runtime"
 
     testCompile "junit:junit:4.12"
+    testCompile "org.mockito:mockito-core:1.9.5"
+
 
     testCompile "io.micronaut:micronaut-http-server-netty"
     testAnnotationProcessor "io.micronaut:micronaut-inject-java"

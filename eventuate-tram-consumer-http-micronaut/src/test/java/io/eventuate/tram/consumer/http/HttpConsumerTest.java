@@ -1,10 +1,11 @@
 package io.eventuate.tram.consumer.http;
 
-import io.eventuate.common.jdbc.EventuateTransactionTemplate;
 import io.eventuate.tram.consumer.common.MessageConsumerImplementation;
 import io.eventuate.tram.messaging.common.Message;
 import io.eventuate.tram.messaging.producer.MessageBuilder;
 import io.eventuate.tram.messaging.producer.common.MessageProducerImplementation;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.retry.Retry;
 import io.micronaut.context.annotation.Value;
 import io.micronaut.test.annotation.MicronautTest;
 import org.junit.Assert;
@@ -30,19 +31,16 @@ public class HttpConsumerTest {
   private EventuateTramHttpMessageController eventuateTramHttpMessageController;
 
   @Inject
-  private EventuateTransactionTemplate eventuateTransactionTemplate;
-
-  @Inject
   private ProxyClient proxyClient;
 
   @Inject
   private HeartbeatService heartbeatService;
 
-  @Value("${eventuate.http.proxy.base.url}")
-  private String httpProxyBaseUrl;
+  @Inject
+  private CircuitBreaker circuitBreaker;
 
-  @Value("${eventuate.http.consumer.base.url}")
-  private String httpConsumerBaseUrl;
+  @Inject
+  private Retry retry;
 
   @Value("${micronaut.server.port}")
   private String micronautServerPort;
@@ -102,7 +100,9 @@ public class HttpConsumerTest {
     messages = new LinkedBlockingQueue<>();
 
     EventuateTramHttpMessageConsumer eventuateTramHttpMessageConsumer =
-            new EventuateTramHttpMessageConsumer(proxyClient,
+            new EventuateTramHttpMessageConsumer(circuitBreaker,
+                    retry,
+                    proxyClient,
                     heartbeatService,
                     eventuateTramHttpMessageController,
                     "http://localhost:" + micronautServerPort + "/someNonExistentAddress");
