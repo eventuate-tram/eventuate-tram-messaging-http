@@ -93,7 +93,7 @@ public class HttpConsumerTest {
   }
 
   @Test
-  public void testUnSuscribe() throws InterruptedException {
+  public void testUnsubcribe() throws InterruptedException {
     testSuscribe();
 
     eventuateTramHttpMessageConsumer.close();
