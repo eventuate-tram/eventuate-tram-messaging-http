@@ -72,7 +72,7 @@ public class HttpConsumerTest {
   }
 
   @Test
-  public void testSuscribe() throws InterruptedException {
+  public void testSubscribe() throws InterruptedException {
     eventuateTramHttpMessageConsumer.subscribe(subscriberId, Collections.singleton(channel), messages::add);
     sendMessage();
     assertMessage();
@@ -93,8 +93,8 @@ public class HttpConsumerTest {
   }
 
   @Test
-  public void testUnsubcribe() throws InterruptedException {
-    testSuscribe();
+  public void testUnsubscribe() throws InterruptedException {
+    testSubscribe();
 
     eventuateTramHttpMessageConsumer.close();
 
