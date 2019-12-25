@@ -3,8 +3,6 @@ package io.eventuate.tram.consumer.http;
 import io.eventuate.util.test.async.Eventually;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
-import io.github.resilience4j.retry.Retry;
-import io.github.resilience4j.retry.RetryConfig;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -14,40 +12,26 @@ import java.util.UUID;
 public class HeartbeatTest {
 
   private CircuitBreaker circuitBreaker;
-  private Retry retry;
   private ProxyClient proxyClient;
   private HeartbeatService heartbeatService;
 
   @Test
   public void testWorkingClient() {
     createCircuitBreaker(Integer.MAX_VALUE);
-    createRetry(Integer.MAX_VALUE);
     createProxyClient();
-    createAndStartHeartbeatService();
+    createAndStartHeartbeatService(Integer.MAX_VALUE);
     assertHeartbeats(1);
   }
 
   @Test
-  public void testRetry() {
-    int retries = 3;
-
-    createCircuitBreaker(Integer.MAX_VALUE);
-    createRetry(retries);
-    createProxyClient();
-    makeHeartbeatFail();
-    createAndStartHeartbeatService();
-    assertHeartbeats(retries);
-  }
-
-  @Test
-  public void testCircuitBreakerBlock() {
+  public void testCircuitBreakerBlock() throws InterruptedException {
     int attempts = 3;
 
     createCircuitBreaker(attempts);
-    createRetry(10);
     createProxyClient();
     makeHeartbeatFail();
-    createAndStartHeartbeatService();
+    createAndStartHeartbeatService(1);
+    Thread.sleep(1000);
     assertHeartbeats(attempts);
   }
 
@@ -59,11 +43,11 @@ public class HeartbeatTest {
     Mockito.doThrow(new RuntimeException()).when(proxyClient).heartbeat(Mockito.any());
   }
 
-  private void createAndStartHeartbeatService() {
+  private void createAndStartHeartbeatService(int interval) {
     HttpConsumerProperties httpConsumerProperties = new HttpConsumerProperties();
-    httpConsumerProperties.setHeartBeatInterval(Integer.MAX_VALUE);
+    httpConsumerProperties.setHeartBeatInterval(interval);
 
-    heartbeatService = new HeartbeatService(circuitBreaker, retry, proxyClient, httpConsumerProperties);
+    heartbeatService = new HeartbeatService(circuitBreaker, proxyClient, httpConsumerProperties);
     heartbeatService.addSubscription(generateId());
     heartbeatService.start();
   }
@@ -78,15 +62,6 @@ public class HeartbeatTest {
                     .custom()
                     .waitDurationInOpenState(Duration.ofMillis(Integer.MAX_VALUE))
                     .minimumNumberOfCalls(calls)
-                    .build());
-  }
-
-  private void createRetry(int attempts) {
-    retry = Retry.of(generateId(),
-            RetryConfig
-                    .custom()
-                    .maxAttempts(attempts)
-                    .waitDuration(Duration.ofMillis(0))
                     .build());
   }
 

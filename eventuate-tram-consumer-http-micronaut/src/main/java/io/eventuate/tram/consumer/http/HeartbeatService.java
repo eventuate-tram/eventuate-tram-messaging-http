@@ -16,30 +16,26 @@ public class HeartbeatService {
   private Logger logger = LoggerFactory.getLogger(getClass());
 
   private CircuitBreaker circuitBreaker;
-  private Retry retry;
   private ProxyClient proxyClient;
   private int interval;
   private Timer timer = new Timer();
   private ConcurrentHashMap<String, Runnable> heartbeatCalls = new ConcurrentHashMap<>();
 
   public HeartbeatService(CircuitBreaker circuitBreaker,
-                          Retry retry,
                           ProxyClient proxyClient,
                           HttpConsumerProperties httpConsumerProperties) {
     this.circuitBreaker = circuitBreaker;
-    this.retry = retry;
     this.proxyClient = proxyClient;
     this.interval = httpConsumerProperties.getHeartBeatInterval();
   }
 
   public void addSubscription(String subscriptionInstanceId) {
-    //circuitBreaker is one for all subscriptions, if we have 5 subscriptions, and circuit breaker calls is limited by 3
-    //if heartbeat fails for first 3 subscription/retry calls, other heartbeats/retries will be blocked
+    //circuitBreaker is one for all subscriptions
+    //if we have 5 subscriptions, and circuit breaker calls is limited by 3
+    //if heartbeat fails for first 3 subscription calls, other heartbeats will be blocked
     //so we can wrap each heartbeat individually
     heartbeatCalls.put(subscriptionInstanceId,
-            Retry.decorateRunnable(retry,
-                    circuitBreaker.decorateRunnable(
-                            () -> proxyClient.heartbeat(subscriptionInstanceId))));
+            circuitBreaker.decorateRunnable(() -> proxyClient.heartbeat(subscriptionInstanceId)));
   }
 
   public void removeSubscription(String subscriptionInstanceId) {
@@ -51,7 +47,13 @@ public class HeartbeatService {
     timer.schedule(new TimerTask() {
       @Override
       public void run() {
-        heartbeatCalls.values().forEach(Runnable::run);
+        heartbeatCalls.values().forEach(runnable -> {
+          try {
+            runnable.run();
+          } catch (Exception e) {
+            logger.error("Heartbeat failed", e);
+          }
+        });
       }
     }, 0, interval);
   }
