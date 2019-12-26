@@ -1,47 +1,19 @@
 package io.eventuate.tram.messaging.proxy.service;
 
-import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = SubscriptionPersistanceTest.Config.class)
+@SpringBootTest(classes = ZkConfig.class)
 public class SubscriptionPersistanceTest {
-
-  @Configuration
-  public static class Config {
-    @Bean
-    public ProxyProperties proxyProperties() {
-      return new ProxyProperties();
-    }
-
-    @Bean
-    public CuratorFramework curatorFramework(ProxyProperties proxyProperties) {
-      RetryPolicy retryPolicy = new ExponentialBackoffRetry(100, Integer.MAX_VALUE);
-
-      CuratorFramework curatorFramework = CuratorFrameworkFactory.
-              builder().retryPolicy(retryPolicy)
-              .connectString(proxyProperties.getZookeeperConnectionString())
-              .build();
-
-      curatorFramework.start();
-
-      return curatorFramework;
-    }
-  }
-
   @Autowired
   private CuratorFramework curatorFramework;
 

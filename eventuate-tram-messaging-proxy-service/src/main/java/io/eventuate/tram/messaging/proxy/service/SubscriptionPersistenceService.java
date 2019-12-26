@@ -1,9 +1,8 @@
 package io.eventuate.tram.messaging.proxy.service;
 
-import io.eventuate.common.json.mapper.JSonMapper;
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.zookeeper.KeeperException;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -21,7 +20,10 @@ public class SubscriptionPersistenceService {
       curatorFramework
               .create()
               .creatingParentContainersIfNeeded()
-              .forPath(makeSubscriptionPath(subscriptionInfo.getSubscriptionInstanceId()), serializeSubscriptionInfo(subscriptionInfo));
+              .forPath(makeSubscriptionPath(subscriptionInfo.getSubscriptionInstanceId()),
+                      SubscriptionUtils.serializeSubscriptionInfo(subscriptionInfo));
+    } catch (KeeperException.NodeExistsException e) {
+      //ignore
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -32,7 +34,11 @@ public class SubscriptionPersistenceService {
       curatorFramework
               .delete()
               .forPath(makeSubscriptionPath(subscriptionInstanceId));
-    } catch (Exception e) {
+    }
+    catch (KeeperException.NoNodeException e) {
+      //ignore
+    }
+    catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
@@ -47,7 +53,9 @@ public class SubscriptionPersistenceService {
               .stream()
               .map(subscriptionInstanceId -> {
                 try {
-                  return deserializeSubscriptionInfo(curatorFramework.getData().forPath(makeSubscriptionPath(subscriptionInstanceId)));
+                  return SubscriptionUtils.deserializeSubscriptionInfo(curatorFramework
+                          .getData()
+                          .forPath(makeSubscriptionPath(subscriptionInstanceId)));
                 } catch (Exception e) {
                   throw new RuntimeException(e);
                 }
@@ -64,13 +72,5 @@ public class SubscriptionPersistenceService {
 
   private String makeRootPath() {
     return String.format("/eventuate/proxy/%s/subscriptions", proxyId);
-  }
-
-  private byte[] serializeSubscriptionInfo(SubscriptionInfo subscriptionInfo) {
-    return JSonMapper.toJson(subscriptionInfo).getBytes(StandardCharsets.UTF_8);
-  }
-
-  private SubscriptionInfo deserializeSubscriptionInfo(byte[] raw) {
-    return JSonMapper.fromJson(new String(raw, StandardCharsets.UTF_8), SubscriptionInfo.class);
   }
 }

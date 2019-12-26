@@ -3,7 +3,6 @@ package io.eventuate.tram.messaging.proxy.service;
 import io.eventuate.tram.consumer.common.MessageConsumerImplementation;
 import io.eventuate.tram.consumer.http.common.HttpMessage;
 import io.eventuate.tram.messaging.consumer.MessageSubscription;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Optional;
@@ -13,11 +12,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public class SubscriptionService {
+  private SubscriptionPersistenceService subscriptionPersistenceService;
   private RestTemplate restTemplate;
   private MessageConsumerImplementation messageConsumerImplementation;
   private int maxHeartbeatInterval;
 
-  public SubscriptionService(RestTemplate restTemplate, MessageConsumerImplementation messageConsumerImplementation, int maxHeartbeatInterval) {
+  public SubscriptionService(SubscriptionPersistenceService subscriptionPersistenceService,
+                             RestTemplate restTemplate,
+                             MessageConsumerImplementation messageConsumerImplementation,
+                             int maxHeartbeatInterval) {
+    this.subscriptionPersistenceService = subscriptionPersistenceService;
     this.restTemplate = restTemplate;
     this.messageConsumerImplementation = messageConsumerImplementation;
     this.maxHeartbeatInterval = maxHeartbeatInterval;
@@ -39,6 +43,7 @@ public class SubscriptionService {
 
               if (System.currentTimeMillis() - lastUpdateTime > maxHeartbeatInterval) {
                 unsubscribe(subscriptionInstanceId);
+                subscriptionPersistenceService.deleteSubscriptionInfo(subscriptionInstanceId);
                 throw new RuntimeException("Heartbeat timeout.");
               }
 
@@ -47,6 +52,9 @@ public class SubscriptionService {
             });
 
     messageSubscriptions.put(subscriptionInstanceId, new SubscriptionUpdateTime(messageSubscription, System.currentTimeMillis()));
+
+    subscriptionPersistenceService.saveSubscriptionInfo(new SubscriptionInfo(subscriptionInstanceId,
+            subscriberId, channels, callbackUrl));
 
     return subscriptionInstanceId;
   }
@@ -61,6 +69,8 @@ public class SubscriptionService {
             .ofNullable(messageSubscriptions.remove(subscriptionInstanceId))
             .map(SubscriptionUpdateTime::getSubscription)
             .ifPresent(MessageSubscription::unsubscribe);
+
+    subscriptionPersistenceService.deleteSubscriptionInfo(subscriptionInstanceId);
   }
 
   private String generateId() {

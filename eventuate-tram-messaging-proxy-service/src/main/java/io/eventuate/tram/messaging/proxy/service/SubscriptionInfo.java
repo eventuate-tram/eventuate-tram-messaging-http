@@ -1,6 +1,7 @@
 package io.eventuate.tram.messaging.proxy.service;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.ToStringBuilder;
 
 import java.util.Objects;
 import java.util.Set;
@@ -61,5 +62,10 @@ public class SubscriptionInfo {
   @Override
   public int hashCode() {
     return Objects.hash(subscriptionInstanceId, subscriberId, channels, callbackUrl);
+  }
+
+  @Override
+  public String toString() {
+    return ToStringBuilder.reflectionToString(this);
   }
 }

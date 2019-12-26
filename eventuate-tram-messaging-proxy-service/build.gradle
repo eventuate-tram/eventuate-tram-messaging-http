@@ -6,8 +6,6 @@ dependencies {
         exclude group: "io.micronaut"
     }
 
-    compile 'org.apache.curator:curator-recipes:2.11.0'
-
     compile "io.eventuate.tram.core:eventuate-tram-consumer-jdbc-spring:$eventuateTramVersion"
     compile "io.eventuate.tram.core:eventuate-tram-consumer-kafka-spring:$eventuateTramVersion"
 
@@ -15,7 +13,10 @@ dependencies {
     compile "org.springframework.boot:spring-boot-starter-actuator"
     compile "org.springframework.boot:spring-boot-starter-web"
 
+    compile('org.apache.curator:curator-recipes:4.2.0')
+
     testCompile "junit:junit:4.12"
     testCompile "org.springframework.boot:spring-boot-starter-test"
+    testCompile "io.eventuate.util:eventuate-util-test:$eventuateUtilVersion"
 }
 

@@ -1,7 +1,7 @@
 version: '3'
 services:
   zookeeper:
-    image: eventuateio/eventuate-zookeeper:$EVENTUATE_COMMON_VERSION
+    image: test-eventuate-zookeeper
     ports:
       - 2181:2181
 

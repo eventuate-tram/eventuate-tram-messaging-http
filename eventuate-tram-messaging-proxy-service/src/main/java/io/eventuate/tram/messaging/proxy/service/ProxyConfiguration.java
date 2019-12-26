@@ -58,11 +58,12 @@ public class ProxyConfiguration {
   }
 
   @Bean
-  public SubscriptionService subscriptionService(RestTemplate restTemplate,
+  public SubscriptionService subscriptionService(SubscriptionPersistenceService subscriptionPersistenceService,
+                                                 RestTemplate restTemplate,
                                                  MessageConsumerImplementation messageConsumerImplementation,
                                                  ProxyProperties proxyProperties) {
 
-    return new SubscriptionService(restTemplate, messageConsumerImplementation, proxyProperties.getMaxHeartbeatInterval());
+    return new SubscriptionService(subscriptionPersistenceService, restTemplate, messageConsumerImplementation, proxyProperties.getMaxHeartbeatInterval());
   }
 
   @Bean
