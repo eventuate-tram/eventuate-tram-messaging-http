@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @RestController
 public class SubscriptionController {
@@ -16,7 +15,7 @@ public class SubscriptionController {
   @RequestMapping(value = "/subscriptions", method = RequestMethod.POST)
   public String subscribe(@RequestBody SubscribeRequest subscribeRequest) {
     return subscriptionService.subscribe(subscribeRequest.getSubscriberId(),
-            subscribeRequest.getChannels(), subscribeRequest.getCallbackUrl(), Optional.empty());
+            subscribeRequest.getChannels(), subscribeRequest.getCallbackUrl(), Optional.empty(), false);
   }
 
   @RequestMapping(value = "/subscriptions/{subscriptionInstanceId}/heartbeat", method = RequestMethod.POST)

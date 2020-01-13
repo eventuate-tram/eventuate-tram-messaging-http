@@ -11,15 +11,17 @@ public class SubscriptionInfo {
   private String subscriberId;
   private Set<String> channels;
   private String callbackUrl;
+  private boolean follower;
 
   public SubscriptionInfo() {
   }
 
-  public SubscriptionInfo(String subscriptionInstanceId, String subscriberId, Set<String> channels, String callbackUrl) {
+  public SubscriptionInfo(String subscriptionInstanceId, String subscriberId, Set<String> channels, String callbackUrl, boolean follower) {
     this.subscriptionInstanceId = subscriptionInstanceId;
     this.subscriberId = subscriberId;
     this.channels = channels;
     this.callbackUrl = callbackUrl;
+    this.follower = follower;
   }
 
   public String getSubscriptionInstanceId() {
@@ -52,6 +54,14 @@ public class SubscriptionInfo {
 
   public void setCallbackUrl(String callbackUrl) {
     this.callbackUrl = callbackUrl;
+  }
+
+  public boolean isFollower() {
+    return follower;
+  }
+
+  public void setFollower(boolean follower) {
+    this.follower = follower;
   }
 
   @Override

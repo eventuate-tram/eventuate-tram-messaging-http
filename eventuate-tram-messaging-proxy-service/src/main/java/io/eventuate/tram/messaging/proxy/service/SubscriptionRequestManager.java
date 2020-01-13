@@ -3,6 +3,7 @@ package io.eventuate.tram.messaging.proxy.service;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCache;
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,13 +19,18 @@ public class SubscriptionRequestManager {
 
   public SubscriptionRequestManager(CuratorFramework curatorFramework,
                                     String path,
-                                    int ttl,
-                                    Consumer<SubscriptionInfo> nodeAddedCallback,
-                                    Consumer<SubscriptionInfo> nodeRemovedCallback) {
+                                    int ttl) {
 
     this.path = path;
     this.curatorFramework = curatorFramework;
     this.ttl = ttl;
+  }
+
+  public void subscribe(Consumer<SubscriptionInfo> nodeAddedCallback, Consumer<SubscriptionInfo> nodeRemovedCallback) {
+    if (treeCache != null) {
+      treeCache.close();
+    }
+
     treeCache = new TreeCache(curatorFramework, path);
 
     treeCache.getListenable().addListener((client, event) -> {
@@ -55,6 +61,26 @@ public class SubscriptionRequestManager {
     }
   }
 
+  public void touch(String subscriptionInstanceId) {
+    String path = pathForSubscriptionRequest(subscriptionInstanceId);
+
+    try {
+      curatorFramework
+              .create()
+              .orSetData()
+              .withTtl(ttl)
+              .creatingParentContainersIfNeeded()
+              .withMode(CreateMode.PERSISTENT_WITH_TTL)
+              .forPath(path, curatorFramework.getData().forPath(path));
+    }
+    catch (KeeperException.NoNodeException e) {
+      //ignore
+    }
+    catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   public void createSubscriptionRequest(SubscriptionInfo subscriptionInfo) {
     try {
       curatorFramework
@@ -65,7 +91,25 @@ public class SubscriptionRequestManager {
               .withMode(CreateMode.PERSISTENT_WITH_TTL)
               .forPath(pathForSubscriptionRequest(subscriptionInfo.getSubscriptionInstanceId()), SubscriptionUtils.serializeSubscriptionInfo(subscriptionInfo));
 
-    } catch (Exception e) {
+    }
+    catch (KeeperException.NodeExistsException e) {
+      //ignore
+    }
+    catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public void removeSubscriptionRequest(String subscriptionInstanceId) {
+    try {
+      curatorFramework
+              .delete()
+              .forPath(pathForSubscriptionRequest(subscriptionInstanceId));
+    }
+    catch (KeeperException.NoNodeException e) {
+      //ignore
+    }
+    catch (Exception e) {
       throw new RuntimeException(e);
     }
   }

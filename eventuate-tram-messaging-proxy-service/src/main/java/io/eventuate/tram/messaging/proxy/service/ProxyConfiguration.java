@@ -59,11 +59,12 @@ public class ProxyConfiguration {
 
   @Bean
   public SubscriptionService subscriptionService(SubscriptionPersistenceService subscriptionPersistenceService,
+                                                 SubscriptionRequestManager subscriptionRequestManager,
                                                  RestTemplate restTemplate,
                                                  MessageConsumerImplementation messageConsumerImplementation,
                                                  ProxyProperties proxyProperties) {
 
-    return new SubscriptionService(subscriptionPersistenceService, restTemplate, messageConsumerImplementation, proxyProperties.getMaxHeartbeatInterval());
+    return new SubscriptionService(subscriptionPersistenceService, subscriptionRequestManager, restTemplate, messageConsumerImplementation, proxyProperties.getMaxHeartbeatInterval());
   }
 
   @Bean
@@ -74,7 +75,14 @@ public class ProxyConfiguration {
   }
 
   @Bean
-  public SubscriptionLoader subscriptionLoader(SubscriptionService subscriptionService, SubscriptionPersistenceService subscriptionPersistenceService) {
-    return new SubscriptionLoader(subscriptionService, subscriptionPersistenceService);
+  public SubscriptionRequestManager subscriptionRequestManager(CuratorFramework curatorFramework, ProxyProperties proxyProperties) {
+    return new SubscriptionRequestManager(curatorFramework, "/eventuate/proxy/cluster/subscriptions", proxyProperties.getMaxHeartbeatInterval());
+  }
+
+  @Bean
+  public SubscriptionLoader subscriptionLoader(SubscriptionService subscriptionService,
+                                               SubscriptionPersistenceService subscriptionPersistenceService,
+                                               SubscriptionRequestManager subscriptionRequestManager) {
+    return new SubscriptionLoader(subscriptionService, subscriptionPersistenceService, subscriptionRequestManager);
   }
 }

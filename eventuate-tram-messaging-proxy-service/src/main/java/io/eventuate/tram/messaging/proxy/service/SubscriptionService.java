@@ -13,15 +13,18 @@ import java.util.concurrent.ConcurrentMap;
 
 public class SubscriptionService {
   private SubscriptionPersistenceService subscriptionPersistenceService;
+  private SubscriptionRequestManager subscriptionRequestManager;
   private RestTemplate restTemplate;
   private MessageConsumerImplementation messageConsumerImplementation;
   private int maxHeartbeatInterval;
 
   public SubscriptionService(SubscriptionPersistenceService subscriptionPersistenceService,
+                             SubscriptionRequestManager subscriptionRequestManager,
                              RestTemplate restTemplate,
                              MessageConsumerImplementation messageConsumerImplementation,
                              int maxHeartbeatInterval) {
     this.subscriptionPersistenceService = subscriptionPersistenceService;
+    this.subscriptionRequestManager = subscriptionRequestManager;
     this.restTemplate = restTemplate;
     this.messageConsumerImplementation = messageConsumerImplementation;
     this.maxHeartbeatInterval = maxHeartbeatInterval;
@@ -29,39 +32,54 @@ public class SubscriptionService {
 
   private ConcurrentMap<String, SubscriptionUpdateTime> messageSubscriptions = new ConcurrentHashMap<>();
 
-  public String subscribe(String subscriberId, Set<String> channels, String callbackUrl, Optional<String> optionalSubscriptionInstanceId) {
-    String subscriptionInstanceId = optionalSubscriptionInstanceId.orElseGet(() -> generateId());
+  public String subscribe(String subscriberId,
+                          Set<String> channels,
+                          String callbackUrl,
+                          Optional<String> optionalSubscriptionInstanceId,
+                          boolean follower) {
 
-    MessageSubscription messageSubscription = messageConsumerImplementation.subscribe(subscriberId,
-            channels,
-            message -> {
+    String subscriptionInstanceId = optionalSubscriptionInstanceId.orElseGet(this::generateId);
 
-              long lastUpdateTime = Optional
-                      .ofNullable(messageSubscriptions.get(subscriptionInstanceId))
-                      .map(SubscriptionUpdateTime::getUpdateTime)
-                      .orElse(System.currentTimeMillis());
+    messageSubscriptions.computeIfAbsent(subscriptionInstanceId, instanceId -> {
+      MessageSubscription messageSubscription = messageConsumerImplementation.subscribe(subscriberId,
+              channels,
+              message -> {
 
-              if (System.currentTimeMillis() - lastUpdateTime > maxHeartbeatInterval) {
-                unsubscribe(subscriptionInstanceId);
-                subscriptionPersistenceService.deleteSubscriptionInfo(subscriptionInstanceId);
-                throw new RuntimeException("Heartbeat timeout.");
-              }
+                if (!follower) {
+                  long lastUpdateTime = Optional
+                          .ofNullable(messageSubscriptions.get(subscriptionInstanceId))
+                          .map(SubscriptionUpdateTime::getUpdateTime)
+                          .orElse(System.currentTimeMillis());
 
-              restTemplate.postForLocation(callbackUrl + "/" + subscriptionInstanceId,
-                      new HttpMessage(message.getId(), message.getHeaders(), message.getPayload()));
-            });
+                  if (System.currentTimeMillis() - lastUpdateTime > maxHeartbeatInterval) {
+                    unsubscribe(subscriptionInstanceId);
+                    throw new RuntimeException("Heartbeat timeout.");
+                  }
+                }
 
-    messageSubscriptions.put(subscriptionInstanceId, new SubscriptionUpdateTime(messageSubscription, System.currentTimeMillis()));
+                restTemplate.postForLocation(callbackUrl + "/" + subscriptionInstanceId,
+                        new HttpMessage(message.getId(), message.getHeaders(), message.getPayload()));
+              });
 
-    subscriptionPersistenceService.saveSubscriptionInfo(new SubscriptionInfo(subscriptionInstanceId,
-            subscriberId, channels, callbackUrl));
+      subscriptionPersistenceService.saveSubscriptionInfo(new SubscriptionInfo(subscriptionInstanceId,
+              subscriberId, channels, callbackUrl, follower));
+
+      if (!follower) {
+        subscriptionRequestManager.createSubscriptionRequest(new SubscriptionInfo(subscriptionInstanceId, subscriberId, channels, callbackUrl, true));
+      }
+
+      return new SubscriptionUpdateTime(messageSubscription, System.currentTimeMillis());
+    });
 
     return subscriptionInstanceId;
   }
 
   public void update(String subscriptionInstanceId) {
     Optional.ofNullable(messageSubscriptions.get(subscriptionInstanceId))
-            .ifPresent(subscriptionUpdateTime -> subscriptionUpdateTime.setUpdateTime(System.currentTimeMillis()));
+            .ifPresent(subscriptionUpdateTime -> {
+              subscriptionUpdateTime.setUpdateTime(System.currentTimeMillis());
+              subscriptionRequestManager.touch(subscriptionInstanceId);
+            });
   }
 
   public void unsubscribe(String subscriptionInstanceId) {
@@ -71,6 +89,7 @@ public class SubscriptionService {
             .ifPresent(MessageSubscription::unsubscribe);
 
     subscriptionPersistenceService.deleteSubscriptionInfo(subscriptionInstanceId);
+    subscriptionRequestManager.removeSubscriptionRequest(subscriptionInstanceId);
   }
 
   private String generateId() {

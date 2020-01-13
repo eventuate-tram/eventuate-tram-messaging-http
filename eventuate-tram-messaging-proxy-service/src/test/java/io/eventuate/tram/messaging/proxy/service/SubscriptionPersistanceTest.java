@@ -53,7 +53,8 @@ public class SubscriptionPersistanceTest {
       subscriptionInfos.add(new SubscriptionInfo(generateId(),
               generateId(),
               Collections.singleton(generateId()),
-              generateId()));
+              generateId(),
+              true));
     }
 
     return subscriptionInfos;
