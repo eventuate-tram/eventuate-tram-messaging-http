@@ -30,8 +30,7 @@ public class SubscriptionLoader {
                     subscriptionService.subscribe(subscriptionInfo.getSubscriberId(),
                             subscriptionInfo.getChannels(),
                             subscriptionInfo.getCallbackUrl(),
-                            Optional.of(subscriptionInfo.getSubscriptionInstanceId()),
-                            subscriptionInfo.isFollower()));
+                            Optional.of(subscriptionInfo.getSubscriptionInstanceId())));
   }
 
   private void followToSubscriptions() {
@@ -39,8 +38,7 @@ public class SubscriptionLoader {
       subscriptionService.subscribe(subscriptionInfo.getSubscriberId(),
               subscriptionInfo.getChannels(),
               subscriptionInfo.getCallbackUrl(),
-              Optional.of(subscriptionInfo.getSubscriptionInstanceId()),
-              subscriptionInfo.isFollower());
+              Optional.of(subscriptionInfo.getSubscriptionInstanceId()));
     }, subscriptionInfo -> subscriptionService.unsubscribe(subscriptionInfo.getSubscriptionInstanceId()));
   }
 }

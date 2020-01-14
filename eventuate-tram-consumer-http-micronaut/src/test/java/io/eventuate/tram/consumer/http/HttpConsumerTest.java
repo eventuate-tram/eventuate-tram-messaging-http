@@ -83,13 +83,27 @@ public class HttpConsumerTest {
     eventuateTramHttpMessageConsumer.subscribe(subscriberId, Collections.singleton(channel), messages::add);
 
     Assert.assertTrue(isProxyAvailable());
-    executeScript("stop-proxy.sh");
+    executeScript("stop-proxies.sh");
     Eventually.eventually(() -> Assert.assertFalse(isProxyAvailable()));
     executeScript("start-proxy.sh");
     Eventually.eventually(() -> Assert.assertTrue(isProxyAvailable()));
 
     sendMessage();
     assertMessage();
+  }
+
+  @Test
+  public void testFollowingSubscription() throws InterruptedException, IOException {
+    eventuateTramHttpMessageConsumer.subscribe(subscriberId, Collections.singleton(channel), messages::add);
+
+    Assert.assertTrue(isProxyAvailable());
+    executeScript("stop-proxy.sh");
+    Eventually.eventually(() -> Assert.assertFalse(isProxyAvailable()));
+
+    sendMessage();
+    assertMessage();
+    executeScript("start-proxy.sh");
+    Eventually.eventually(() -> Assert.assertTrue(isProxyAvailable()));
   }
 
   @Test

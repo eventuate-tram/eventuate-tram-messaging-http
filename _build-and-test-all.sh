@@ -9,7 +9,6 @@ docker="./gradlew ${DATABASE?}${MODE?}Compose"
 ./gradlew testClasses assemble
 
 ${docker}Down
-${docker}Build
 ${docker}Up
 
 ./wait-for-services.sh $DOCKER_HOST_IP "8099"

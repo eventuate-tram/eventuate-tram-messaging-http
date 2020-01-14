@@ -16,109 +16,73 @@ public class SubscriptionService {
   private SubscriptionRequestManager subscriptionRequestManager;
   private RestTemplate restTemplate;
   private MessageConsumerImplementation messageConsumerImplementation;
-  private int maxHeartbeatInterval;
 
   public SubscriptionService(SubscriptionPersistenceService subscriptionPersistenceService,
                              SubscriptionRequestManager subscriptionRequestManager,
                              RestTemplate restTemplate,
-                             MessageConsumerImplementation messageConsumerImplementation,
-                             int maxHeartbeatInterval) {
+                             MessageConsumerImplementation messageConsumerImplementation) {
     this.subscriptionPersistenceService = subscriptionPersistenceService;
     this.subscriptionRequestManager = subscriptionRequestManager;
     this.restTemplate = restTemplate;
     this.messageConsumerImplementation = messageConsumerImplementation;
-    this.maxHeartbeatInterval = maxHeartbeatInterval;
   }
 
-  private ConcurrentMap<String, SubscriptionUpdateTime> messageSubscriptions = new ConcurrentHashMap<>();
+  private ConcurrentMap<String, MessageSubscription> messageSubscriptions = new ConcurrentHashMap<>();
+
+  public String makeSubscriptionRequest(String subscriberId,
+                          Set<String> channels,
+                          String callbackUrl,
+                          Optional<String> optionalSubscriptionInstanceId) {
+
+    String subscriptionInstanceId = optionalSubscriptionInstanceId.orElseGet(this::generateId);
+
+    subscriptionRequestManager.createSubscriptionRequest(new SubscriptionInfo(subscriptionInstanceId, subscriberId, channels, callbackUrl));
+
+    return subscriptionInstanceId;
+  }
 
   public String subscribe(String subscriberId,
                           Set<String> channels,
                           String callbackUrl,
-                          Optional<String> optionalSubscriptionInstanceId,
-                          boolean follower) {
+                          Optional<String> optionalSubscriptionInstanceId) {
 
     String subscriptionInstanceId = optionalSubscriptionInstanceId.orElseGet(this::generateId);
 
     messageSubscriptions.computeIfAbsent(subscriptionInstanceId, instanceId -> {
       MessageSubscription messageSubscription = messageConsumerImplementation.subscribe(subscriberId,
               channels,
-              message -> {
-
-                if (!follower) {
-                  long lastUpdateTime = Optional
-                          .ofNullable(messageSubscriptions.get(subscriptionInstanceId))
-                          .map(SubscriptionUpdateTime::getUpdateTime)
-                          .orElse(System.currentTimeMillis());
-
-                  if (System.currentTimeMillis() - lastUpdateTime > maxHeartbeatInterval) {
-                    unsubscribe(subscriptionInstanceId);
-                    throw new RuntimeException("Heartbeat timeout.");
-                  }
-                }
-
+              message ->
                 restTemplate.postForLocation(callbackUrl + "/" + subscriptionInstanceId,
-                        new HttpMessage(message.getId(), message.getHeaders(), message.getPayload()));
-              });
+                        new HttpMessage(message.getId(), message.getHeaders(), message.getPayload())));
 
       subscriptionPersistenceService.saveSubscriptionInfo(new SubscriptionInfo(subscriptionInstanceId,
-              subscriberId, channels, callbackUrl, follower));
+              subscriberId, channels, callbackUrl));
 
-      if (!follower) {
-        subscriptionRequestManager.createSubscriptionRequest(new SubscriptionInfo(subscriptionInstanceId, subscriberId, channels, callbackUrl, true));
-      }
-
-      return new SubscriptionUpdateTime(messageSubscription, System.currentTimeMillis());
+      return messageSubscription;
     });
 
     return subscriptionInstanceId;
   }
 
-  public void update(String subscriptionInstanceId) {
-    Optional.ofNullable(messageSubscriptions.get(subscriptionInstanceId))
-            .ifPresent(subscriptionUpdateTime -> {
-              subscriptionUpdateTime.setUpdateTime(System.currentTimeMillis());
-              subscriptionRequestManager.touch(subscriptionInstanceId);
-            });
+  public void updateSubscription(String subscriptionInstanceId) {
+    Optional
+            .ofNullable(messageSubscriptions.get(subscriptionInstanceId))
+            .ifPresent(subscription -> subscriptionRequestManager.touch(subscriptionInstanceId));
+  }
+
+  public void makeUnsubscriptionRequest(String subscriptionInstanceId) {
+    subscriptionRequestManager.removeSubscriptionRequest(subscriptionInstanceId);
   }
 
   public void unsubscribe(String subscriptionInstanceId) {
     Optional
             .ofNullable(messageSubscriptions.remove(subscriptionInstanceId))
-            .map(SubscriptionUpdateTime::getSubscription)
             .ifPresent(MessageSubscription::unsubscribe);
 
     subscriptionPersistenceService.deleteSubscriptionInfo(subscriptionInstanceId);
-    subscriptionRequestManager.removeSubscriptionRequest(subscriptionInstanceId);
   }
 
   private String generateId() {
     return UUID.randomUUID().toString();
-  }
-
-  private static class SubscriptionUpdateTime {
-    private MessageSubscription subscription;
-    private long updateTime;
-
-    public SubscriptionUpdateTime(MessageSubscription subscription, long updateTime) {
-      this.subscription = subscription;
-      this.updateTime = updateTime;
-    }
-
-    public MessageSubscription getSubscription() {
-      return subscription;
-    }
-
-    public void setSubscription(MessageSubscription subscription) {
-      this.subscription = subscription;
-    }
-
-    public long getUpdateTime() {
-      return updateTime;
-    }
-
-    public void setUpdateTime(long updateTime) {
-      this.updateTime = updateTime;
-    }
   }
 }

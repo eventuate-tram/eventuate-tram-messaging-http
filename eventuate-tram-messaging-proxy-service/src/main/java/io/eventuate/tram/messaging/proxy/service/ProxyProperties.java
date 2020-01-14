@@ -4,18 +4,14 @@ import org.springframework.beans.factory.annotation.Value;
 
 public class ProxyProperties {
 
-  @Value("${eventuate.http.proxy.max.heartbeat.interval:#{30000}}")
-  private int maxHeartbeatInterval;
-
   @Value("${eventuate.http.proxy.zookeeper.connection.string}")
   private String zookeeperConnectionString;
 
   @Value("${eventuate.http.proxy.id}")
   private String proxyId;
 
-  public int getMaxHeartbeatInterval() {
-    return maxHeartbeatInterval;
-  }
+  @Value("${eventuate.subscription.request.ttl:#{120000}}")
+  private int subscriptionRequestTtl;
 
   public String getZookeeperConnectionString() {
     return zookeeperConnectionString;
@@ -23,5 +19,9 @@ public class ProxyProperties {
 
   public String getProxyId() {
     return proxyId;
+  }
+
+  public int getSubscriptionRequestTtl() {
+    return subscriptionRequestTtl;
   }
 }

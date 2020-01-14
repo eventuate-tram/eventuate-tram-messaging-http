@@ -17,9 +17,7 @@ public class SubscriptionRequestManager {
   private TreeCache treeCache;
   private int ttl;
 
-  public SubscriptionRequestManager(CuratorFramework curatorFramework,
-                                    String path,
-                                    int ttl) {
+  public SubscriptionRequestManager(CuratorFramework curatorFramework, String path, int ttl) {
 
     this.path = path;
     this.curatorFramework = curatorFramework;

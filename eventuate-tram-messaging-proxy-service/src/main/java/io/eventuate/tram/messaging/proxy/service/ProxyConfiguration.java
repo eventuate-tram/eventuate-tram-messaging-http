@@ -64,7 +64,7 @@ public class ProxyConfiguration {
                                                  MessageConsumerImplementation messageConsumerImplementation,
                                                  ProxyProperties proxyProperties) {
 
-    return new SubscriptionService(subscriptionPersistenceService, subscriptionRequestManager, restTemplate, messageConsumerImplementation, proxyProperties.getMaxHeartbeatInterval());
+    return new SubscriptionService(subscriptionPersistenceService, subscriptionRequestManager, restTemplate, messageConsumerImplementation);
   }
 
   @Bean
@@ -76,7 +76,7 @@ public class ProxyConfiguration {
 
   @Bean
   public SubscriptionRequestManager subscriptionRequestManager(CuratorFramework curatorFramework, ProxyProperties proxyProperties) {
-    return new SubscriptionRequestManager(curatorFramework, "/eventuate/proxy/cluster/subscriptions", proxyProperties.getMaxHeartbeatInterval());
+    return new SubscriptionRequestManager(curatorFramework, "/eventuate/proxy/cluster/subscriptions", proxyProperties.getSubscriptionRequestTtl());
   }
 
   @Bean
