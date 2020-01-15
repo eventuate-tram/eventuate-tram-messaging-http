@@ -37,6 +37,8 @@ public class SubscriptionService {
     String subscriptionInstanceId = optionalSubscriptionInstanceId.orElseGet(this::generateId);
 
     subscriptionRequestManager.createSubscriptionRequest(new SubscriptionInfo(subscriptionInstanceId, subscriberId, channels, callbackUrl));
+    subscriptionPersistenceService.saveSubscriptionInfo(new SubscriptionInfo(subscriptionInstanceId,
+            subscriberId, channels, callbackUrl));
 
     return subscriptionInstanceId;
   }
@@ -54,9 +56,6 @@ public class SubscriptionService {
               message ->
                 restTemplate.postForLocation(callbackUrl + "/" + subscriptionInstanceId,
                         new HttpMessage(message.getId(), message.getHeaders(), message.getPayload())));
-
-      subscriptionPersistenceService.saveSubscriptionInfo(new SubscriptionInfo(subscriptionInstanceId,
-              subscriberId, channels, callbackUrl));
 
       return messageSubscription;
     });

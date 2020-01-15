@@ -8,11 +8,11 @@ import java.util.stream.Collectors;
 
 public class SubscriptionPersistenceService {
   private CuratorFramework curatorFramework;
-  private String proxyId;
+  private String path;
 
-  public SubscriptionPersistenceService(CuratorFramework curatorFramework, String proxyId) {
+  public SubscriptionPersistenceService(CuratorFramework curatorFramework, String path) {
     this.curatorFramework = curatorFramework;
-    this.proxyId = proxyId;
+    this.path = path;
   }
 
   public void saveSubscriptionInfo(SubscriptionInfo subscriptionInfo) {
@@ -45,11 +45,11 @@ public class SubscriptionPersistenceService {
 
   public Set<SubscriptionInfo> loadSubscriptionInfos() {
     try {
-      curatorFramework.createContainers(makeRootPath());
+      curatorFramework.createContainers(path);
 
       return curatorFramework
               .getChildren()
-              .forPath(makeRootPath())
+              .forPath(path)
               .stream()
               .map(subscriptionInstanceId -> {
                 try {
@@ -67,10 +67,6 @@ public class SubscriptionPersistenceService {
   }
 
   private String makeSubscriptionPath(String subscriptionInstanceId) {
-    return String.format("%s/%s",  makeRootPath(), subscriptionInstanceId);
-  }
-
-  private String makeRootPath() {
-    return String.format("/eventuate/proxy/%s/subscriptions", proxyId);
+    return String.format("%s/%s",  path, subscriptionInstanceId);
   }
 }

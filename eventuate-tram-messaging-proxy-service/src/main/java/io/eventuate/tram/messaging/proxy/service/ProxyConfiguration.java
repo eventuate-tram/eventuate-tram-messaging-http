@@ -64,14 +64,13 @@ public class ProxyConfiguration {
                                                  MessageConsumerImplementation messageConsumerImplementation,
                                                  ProxyProperties proxyProperties) {
 
-    return new SubscriptionService(subscriptionPersistenceService, subscriptionRequestManager, restTemplate, messageConsumerImplementation);
+    return new SubscriptionService(subscriptionPersistenceService, subscriptionRequestManager, restTemplate, new SynchronizedMessageConsumerImplementation(messageConsumerImplementation));
   }
 
   @Bean
-  public SubscriptionPersistenceService subscriptionPersistenceService(ProxyProperties proxyProperties,
-                                                                       CuratorFramework curatorFramework) {
+  public SubscriptionPersistenceService subscriptionPersistenceService(CuratorFramework curatorFramework) {
 
-    return new SubscriptionPersistenceService(curatorFramework, proxyProperties.getProxyId());
+    return new SubscriptionPersistenceService(curatorFramework, "/eventuate/proxy/persistent/subscriptions");
   }
 
   @Bean

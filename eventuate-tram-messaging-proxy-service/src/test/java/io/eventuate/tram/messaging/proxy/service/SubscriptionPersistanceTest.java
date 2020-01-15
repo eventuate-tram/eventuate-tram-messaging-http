@@ -21,7 +21,7 @@ public class SubscriptionPersistanceTest {
 
   @Before
   public void init() {
-    subscriptionPersistenceService = new SubscriptionPersistenceService(curatorFramework, generateId());
+    subscriptionPersistenceService = new SubscriptionPersistenceService(curatorFramework, "/" + generateId());
   }
 
   @Test
