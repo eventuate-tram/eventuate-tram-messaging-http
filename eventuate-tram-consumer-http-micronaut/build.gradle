@@ -35,8 +35,8 @@ dependencies {
     testRuntime "org.junit.jupiter:junit-jupiter-engine"
     testRuntime 'io.micronaut.configuration:micronaut-jdbc-hikari'
 
-    testCompile "io.eventuate.common:eventuate-common-jdbc-micronaut-spring:$eventuateCommonVersion"
-    testCompile "io.eventuate.tram.core:eventuate-tram-producer-jdbc-micronaut:$eventuateTramVersion"
+    testCompile "io.eventuate.common:eventuate-common-micronaut-spring-jdbc:$eventuateCommonVersion"
+    testCompile "io.eventuate.tram.core:eventuate-tram-micronaut-producer-jdbc:$eventuateTramVersion"
     testCompile "io.eventuate.util:eventuate-util-test:$eventuateUtilVersion"
 }
 

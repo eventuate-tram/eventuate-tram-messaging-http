@@ -1,11 +1,11 @@
 package io.eventuate.tram.messaging.proxy.service;
 
-import io.eventuate.common.jdbc.spring.EventuateCommonJdbcOperationsConfiguration;
+import io.eventuate.common.spring.jdbc.EventuateCommonJdbcOperationsConfiguration;
 import io.eventuate.tram.consumer.common.MessageConsumerImplementation;
-import io.eventuate.tram.consumer.jdbc.spring.TramConsumerJdbcAutoConfiguration;
-import io.eventuate.tram.consumer.kafka.spring.EventuateTramKafkaMessageConsumerConfiguration;
 import io.eventuate.tram.messaging.common.ChannelMapping;
 import io.eventuate.tram.messaging.common.DefaultChannelMapping;
+import io.eventuate.tram.spring.consumer.jdbc.TramConsumerJdbcAutoConfiguration;
+import io.eventuate.tram.spring.consumer.kafka.EventuateTramKafkaMessageConsumerConfiguration;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
