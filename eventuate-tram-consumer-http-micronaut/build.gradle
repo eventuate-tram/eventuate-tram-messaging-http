@@ -12,19 +12,21 @@ dependencies {
 
     compile project(":eventuate-tram-consumer-http-common")
 
+    compile 'io.github.resilience4j:resilience4j-circuitbreaker:1.2.0'
+    compile 'io.github.resilience4j:resilience4j-retry:1.2.0'
     compile "io.micronaut:micronaut-http-client"
 
-    compile "io.eventuate.tram.core:eventuate-tram-consumer-common:$eventuateTramVersion"
-    compile "io.eventuate.common:eventuate-common-jdbc-micronaut:$eventuateCommonVersion"
+    compile "io.eventuate.tram.core:eventuate-tram-spring-consumer-common:$eventuateTramVersion"
 
     annotationProcessor "io.micronaut:micronaut-inject-java"
     annotationProcessor "io.micronaut:micronaut-validation"
-    annotationProcessor "io.micronaut.configuration:micronaut-openapi"
     compile "io.micronaut:micronaut-inject"
     compile "io.micronaut:micronaut-validation"
     compile "io.micronaut:micronaut-runtime"
 
     testCompile "junit:junit:4.12"
+    testCompile "org.mockito:mockito-core:1.9.5"
+
 
     testCompile "io.micronaut:micronaut-http-server-netty"
     testAnnotationProcessor "io.micronaut:micronaut-inject-java"
@@ -33,8 +35,8 @@ dependencies {
     testRuntime "org.junit.jupiter:junit-jupiter-engine"
     testRuntime 'io.micronaut.configuration:micronaut-jdbc-hikari'
 
-    testCompile "io.eventuate.common:eventuate-common-jdbc-micronaut-spring:$eventuateCommonVersion"
-    testCompile "io.eventuate.tram.core:eventuate-tram-producer-jdbc-micronaut:$eventuateTramVersion"
+    testCompile "io.eventuate.common:eventuate-common-micronaut-spring-jdbc:$eventuateCommonVersion"
+    testCompile "io.eventuate.tram.core:eventuate-tram-micronaut-producer-jdbc:$eventuateTramVersion"
     testCompile "io.eventuate.util:eventuate-util-test:$eventuateUtilVersion"
 }
 
