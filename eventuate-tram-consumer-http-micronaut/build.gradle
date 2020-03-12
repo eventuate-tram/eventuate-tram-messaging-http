@@ -16,7 +16,7 @@ dependencies {
     compile 'io.github.resilience4j:resilience4j-retry:1.2.0'
     compile "io.micronaut:micronaut-http-client"
 
-    compile "io.eventuate.tram.core:eventuate-tram-consumer-common:$eventuateTramVersion"
+    compile "io.eventuate.tram.core:eventuate-tram-spring-consumer-common:$eventuateTramVersion"
 
     annotationProcessor "io.micronaut:micronaut-inject-java"
     annotationProcessor "io.micronaut:micronaut-validation"
