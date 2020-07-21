@@ -66,7 +66,7 @@ public class HttpConsumerTest {
   public void init() {
     subscriberId = "subscriber-" + generateId();
     id = "id-" + generateId();
-    payload = "payload-" + generateId();
+    payload = "\"payload-" + generateId() + "\"";
     channel = "channel-" + generateId();
     messages = new LinkedBlockingQueue<>();
   }
@@ -115,7 +115,7 @@ public class HttpConsumerTest {
     Thread.sleep(3000);
 
     id = "id-" + generateId();
-    payload = "payload-" + generateId();
+    payload = "\"payload-" + generateId() + "\"";
 
     sendMessage();
 
