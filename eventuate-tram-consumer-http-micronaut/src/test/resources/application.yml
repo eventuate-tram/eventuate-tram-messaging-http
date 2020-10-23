@@ -2,11 +2,20 @@ jackson:
   bean-introspection-module: true
 datasources:
   default:
-    url: ${DATASOURCE_URL}
-    username: ${DATASOURCE_USERNAME}
-    password: ${DATASOURCE_PASSWORD}
-    driverClassName: ${DATASOURCE_DRIVERCLASSNAME}
+    url: jdbc:mysql://${DOCKER_HOST_IP:localhost}/eventuate
+    username: mysqluser
+    password: mysqlpw
+    driverClassName: com.mysql.jdbc.Driver
 micronaut:
     server:
         port: 8080
+
+eventuate:
+  http:
+    consumer:
+      base:
+        url: http://${DOCKER_HOST_IP:localhost}:8080/messages
+    proxy:
+      base:
+        url: http://${DOCKER_HOST_IP:localhost}:8098/subscriptions
 
