@@ -15,7 +15,7 @@ public class SubscriptionController {
   @RequestMapping(value = "/subscriptions", method = RequestMethod.POST)
   public String subscribe(@RequestBody SubscribeRequest subscribeRequest) {
     return subscriptionService.makeSubscriptionRequest(subscribeRequest.getSubscriberId(),
-            subscribeRequest.getChannels(), subscribeRequest.getCallbackUrl(), Optional.empty());
+            subscribeRequest.getChannels(), subscribeRequest.getCallbackUrl(), Optional.ofNullable(subscribeRequest.getCallbackSubscriptionId()));
   }
 
   @RequestMapping(value = "/subscriptions/{subscriptionInstanceId}/heartbeat", method = RequestMethod.POST)

@@ -11,6 +11,7 @@ public class SubscriptionInfo {
   private String subscriberId;
   private Set<String> channels;
   private String callbackUrl;
+  private String callbackSubscriptionId;
 
   public SubscriptionInfo() {
   }
@@ -20,6 +21,14 @@ public class SubscriptionInfo {
     this.subscriberId = subscriberId;
     this.channels = channels;
     this.callbackUrl = callbackUrl;
+  }
+
+  public SubscriptionInfo(String subscriptionInstanceId, String subscriberId, Set<String> channels, String callbackUrl, String callbackSubscriptionId) {
+    this.subscriptionInstanceId = subscriptionInstanceId;
+    this.subscriberId = subscriberId;
+    this.channels = channels;
+    this.callbackUrl = callbackUrl;
+    this.callbackSubscriptionId = callbackSubscriptionId;
   }
 
   public String getSubscriptionInstanceId() {
@@ -54,6 +63,14 @@ public class SubscriptionInfo {
     this.callbackUrl = callbackUrl;
   }
 
+  public String getCallbackSubscriptionId() {
+    return callbackSubscriptionId;
+  }
+
+  public void setCallbackSubscriptionId(String callbackSubscriptionId) {
+    this.callbackSubscriptionId = callbackSubscriptionId;
+  }
+
   @Override
   public boolean equals(Object o) {
     return EqualsBuilder.reflectionEquals(this, o);
@@ -61,7 +78,7 @@ public class SubscriptionInfo {
 
   @Override
   public int hashCode() {
-    return Objects.hash(subscriptionInstanceId, subscriberId, channels, callbackUrl);
+    return Objects.hash(subscriptionInstanceId, subscriberId, channels, callbackUrl, callbackSubscriptionId);
   }
 
   @Override

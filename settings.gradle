@@ -1,3 +1,4 @@
 include 'eventuate-tram-consumer-http-common'
 include 'eventuate-tram-messaging-proxy-service'
 include 'eventuate-tram-consumer-http-micronaut'
+include 'eventuate-tram-rest-consumer-spring'

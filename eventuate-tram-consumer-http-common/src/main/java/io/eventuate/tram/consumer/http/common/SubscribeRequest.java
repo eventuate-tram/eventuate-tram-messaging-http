@@ -6,6 +6,7 @@ import java.util.Set;
 
 @Introspected
 public class SubscribeRequest {
+  private String callbackSubscriptionId;
   private String subscriberId;
   private Set<String> channels;
   private String callbackUrl;
@@ -13,10 +14,25 @@ public class SubscribeRequest {
   public SubscribeRequest() {
   }
 
+  public SubscribeRequest(String callbackSubscriptionId, String subscriberId, Set<String> channels, String callbackUrl) {
+    this.callbackSubscriptionId = callbackSubscriptionId;
+    this.subscriberId = subscriberId;
+    this.channels = channels;
+    this.callbackUrl = callbackUrl;
+  }
+
   public SubscribeRequest(String subscriberId, Set<String> channels, String callbackUrl) {
     this.subscriberId = subscriberId;
     this.channels = channels;
     this.callbackUrl = callbackUrl;
+  }
+
+  public String getCallbackSubscriptionId() {
+    return callbackSubscriptionId;
+  }
+
+  public void setCallbackSubscriptionId(String callbackSubscriptionId) {
+    this.callbackSubscriptionId = callbackSubscriptionId;
   }
 
   public String getSubscriberId() {

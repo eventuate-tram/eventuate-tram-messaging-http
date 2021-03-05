@@ -32,13 +32,15 @@ public class SubscriptionService {
   public String makeSubscriptionRequest(String subscriberId,
                           Set<String> channels,
                           String callbackUrl,
-                          Optional<String> optionalSubscriptionInstanceId) {
+                          Optional<String> callbackSubscriptionId) {
 
-    String subscriptionInstanceId = optionalSubscriptionInstanceId.orElseGet(this::generateId);
+    String subscriptionInstanceId = generateId();
 
-    subscriptionRequestManager.createSubscriptionRequest(new SubscriptionInfo(subscriptionInstanceId, subscriberId, channels, callbackUrl));
+    subscriptionRequestManager.createSubscriptionRequest(new SubscriptionInfo(subscriptionInstanceId,
+            subscriberId, channels, callbackUrl, callbackSubscriptionId.orElse(null)));
+
     subscriptionPersistenceService.saveSubscriptionInfo(new SubscriptionInfo(subscriptionInstanceId,
-            subscriberId, channels, callbackUrl));
+            subscriberId, channels, callbackUrl, callbackSubscriptionId.orElse(null)));
 
     return subscriptionInstanceId;
   }
@@ -46,15 +48,14 @@ public class SubscriptionService {
   public String subscribe(String subscriberId,
                           Set<String> channels,
                           String callbackUrl,
-                          Optional<String> optionalSubscriptionInstanceId) {
-
-    String subscriptionInstanceId = optionalSubscriptionInstanceId.orElseGet(this::generateId);
+                          Optional<String> callbackSubscriptionId,
+                          String subscriptionInstanceId) {
 
     messageSubscriptions.computeIfAbsent(subscriptionInstanceId, instanceId -> {
       MessageSubscription messageSubscription = messageConsumerImplementation.subscribe(subscriberId,
               channels,
               message ->
-                restTemplate.postForLocation(callbackUrl + "/" + subscriptionInstanceId,
+                restTemplate.postForLocation(callbackUrl + "/" + callbackSubscriptionId.orElse(subscriptionInstanceId),
                         new HttpMessage(message.getId(), message.getHeaders(), message.getPayload())));
 
       return messageSubscription;
