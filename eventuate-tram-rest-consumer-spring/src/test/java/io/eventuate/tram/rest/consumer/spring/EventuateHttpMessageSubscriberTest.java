@@ -1,9 +1,11 @@
 package io.eventuate.tram.rest.consumer.spring;
 
 import io.eventuate.tram.consumer.http.common.HttpMessage;
+import io.eventuate.tram.events.publisher.DomainEventPublisher;
 import io.eventuate.tram.messaging.common.Message;
 import io.eventuate.tram.messaging.producer.MessageBuilder;
 import io.eventuate.tram.messaging.producer.common.MessageProducerImplementation;
+import io.eventuate.tram.spring.events.publisher.TramEventsPublisherConfiguration;
 import io.eventuate.tram.spring.messaging.producer.jdbc.TramMessageProducerJdbcConfiguration;
 import org.junit.Assert;
 import org.junit.Before;
@@ -20,11 +22,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.Collections.singletonList;
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = EventuateHttpMessageSubscriberTest.Config.class, webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class EventuateHttpMessageSubscriberTest {
   @Configuration
-  @Import({EventuateMessageSubscriberConfiguration.class, TramMessageProducerJdbcConfiguration.class})
+  @Import({EventuateMessageSubscriberConfiguration.class, TramMessageProducerJdbcConfiguration.class, TramEventsPublisherConfiguration.class})
   @EnableAutoConfiguration
   @ComponentScan
   public static class Config {
@@ -34,9 +38,13 @@ public class EventuateHttpMessageSubscriberTest {
   private MessageProducerImplementation messageProducerImplementation;
 
   @Autowired
+  private DomainEventPublisher domainEventPublisher;
+
+  @Autowired
   private TestController testController;
 
   private String channel = "test-channel";
+
 
   private String id;
   private String payload;
@@ -50,6 +58,24 @@ public class EventuateHttpMessageSubscriberTest {
   public void testMessageHandled() throws InterruptedException{
     sendMessage();
     assertMessage();
+  }
+
+  @Test
+  public void testEventHandled() throws InterruptedException{
+    sendEvent();
+    assertEvent();
+  }
+
+  private void sendEvent() {
+    id = generateId();
+    domainEventPublisher.publish("TestAggregate", id, singletonList(new TestEvent(id, payload)));
+  }
+
+  private void assertEvent() throws InterruptedException {
+    TestEvent testEvent = testController.getReceivedEvents().poll(30, TimeUnit.SECONDS);
+    Assert.assertNotNull(testEvent);
+    Assert.assertEquals(id, testEvent.getId());
+    Assert.assertEquals(payload, testEvent.getSomeImportantData());
   }
 
   private void sendMessage() {

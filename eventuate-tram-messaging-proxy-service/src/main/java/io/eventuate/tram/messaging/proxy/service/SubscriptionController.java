@@ -14,8 +14,8 @@ public class SubscriptionController {
 
   @RequestMapping(value = "/subscriptions", method = RequestMethod.POST)
   public String subscribe(@RequestBody SubscribeRequest subscribeRequest) {
-    return subscriptionService.makeSubscriptionRequest(subscribeRequest.getSubscriberId(),
-            subscribeRequest.getChannels(), subscribeRequest.getCallbackUrl(), Optional.ofNullable(subscribeRequest.getCallbackSubscriptionId()));
+    return subscriptionService.makeSubscriptionRequest(subscribeRequest.getSubscriptionType(),
+            subscribeRequest.getSubscriberId(), subscribeRequest.getChannels(), subscribeRequest.getCallbackUrl(), subscribeRequest.isDiscardSubscriptionIdInCallbackUrl());
   }
 
   @RequestMapping(value = "/subscriptions/{subscriptionInstanceId}/heartbeat", method = RequestMethod.POST)

@@ -7,9 +7,6 @@ public class EventuateHttpConsumerProperties {
   @Value("${eventuate.http.consumer.heartbeat.interval:#{5000}}")
   private int heartBeatInterval;
 
-  @Value("${eventuate.message.consumer.base.url}")
-  private String messageConsumerBaseUrl;
-
   @Value("${eventuate.http.proxy.base.url}")
   private String httpProxyBaseUrl;
 
@@ -27,10 +24,6 @@ public class EventuateHttpConsumerProperties {
 
   public int getHeartBeatInterval() {
     return heartBeatInterval;
-  }
-
-  public String getMessageConsumerBaseUrl() {
-    return messageConsumerBaseUrl;
   }
 
   public String getHttpProxyBaseUrl() {

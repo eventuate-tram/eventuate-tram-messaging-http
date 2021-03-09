@@ -1,6 +1,7 @@
 package io.eventuate.tram.rest.consumer.spring;
 
 import io.eventuate.tram.consumer.http.common.SubscribeRequest;
+import io.eventuate.tram.consumer.http.common.SubscriptionType;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.retry.Retry;
 
@@ -10,7 +11,6 @@ import java.util.Set;
 public class EventuateTramHttpMessageSubscriber {
   private CircuitBreaker circuitBreaker;
   private Retry retry;
-  private String messageConsumerBaseUrl;
   private ProxyClient proxyClient;
   private HeartbeatService heartbeatService;
   private Set<String> subscriptions = new HashSet<>();
@@ -18,20 +18,18 @@ public class EventuateTramHttpMessageSubscriber {
   public EventuateTramHttpMessageSubscriber(CircuitBreaker circuitBreaker,
                                             Retry retry,
                                             ProxyClient proxyClient,
-                                            HeartbeatService heartbeatService,
-                                            String messageConsumerBaseUrl) {
+                                            HeartbeatService heartbeatService) {
 
     this.retry = retry;
     this.circuitBreaker = circuitBreaker;
     this.proxyClient = proxyClient;
     this.heartbeatService = heartbeatService;
-    this.messageConsumerBaseUrl = messageConsumerBaseUrl;
   }
 
-  public Runnable subscribe(String subscriberId, Set<String> channels) {
+  public Runnable subscribe(SubscriptionType subscriptionType, String subscriberId, Set<String> channels, String callbackUrl) {
     String subscriptionInstanceId = retry.executeSupplier(() ->
             circuitBreaker.executeSupplier(() ->
-                    proxyClient.subscribe(new SubscribeRequest(subscriberId, subscriberId, channels, messageConsumerBaseUrl))));
+                    proxyClient.subscribe(new SubscribeRequest(subscriptionType, subscriberId, channels, callbackUrl, true))));
 
     heartbeatService.addSubscription(subscriptionInstanceId);
 

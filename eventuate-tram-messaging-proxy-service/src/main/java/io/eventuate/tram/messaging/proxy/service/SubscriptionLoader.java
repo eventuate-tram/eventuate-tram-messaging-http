@@ -27,20 +27,22 @@ public class SubscriptionLoader {
     subscriptionPersistenceService
             .loadSubscriptionInfos()
             .forEach(subscriptionInfo ->
-                    subscriptionService.subscribe(subscriptionInfo.getSubscriberId(),
+                    subscriptionService.subscribe(subscriptionInfo.getSubscriptionType(),
+                            subscriptionInfo.getSubscriberId(),
                             subscriptionInfo.getChannels(),
                             subscriptionInfo.getCallbackUrl(),
-                            Optional.ofNullable(subscriptionInfo.getCallbackSubscriptionId()),
-                            subscriptionInfo.getSubscriptionInstanceId()));
+                            subscriptionInfo.getSubscriptionInstanceId(),
+                            subscriptionInfo.isDiscardSubscriptionIdInCallbackUrl()));
   }
 
   private void followToSubscriptions() {
     subscriptionRequestManager.subscribe(subscriptionInfo -> {
-      subscriptionService.subscribe(subscriptionInfo.getSubscriberId(),
+      subscriptionService.subscribe(subscriptionInfo.getSubscriptionType(),
+              subscriptionInfo.getSubscriberId(),
               subscriptionInfo.getChannels(),
               subscriptionInfo.getCallbackUrl(),
-              Optional.ofNullable(subscriptionInfo.getCallbackSubscriptionId()),
-              subscriptionInfo.getSubscriptionInstanceId());
+              subscriptionInfo.getSubscriptionInstanceId(),
+              subscriptionInfo.isDiscardSubscriptionIdInCallbackUrl());
     }, subscriptionInfo -> subscriptionService.unsubscribe(subscriptionInfo.getSubscriptionInstanceId()));
   }
 }

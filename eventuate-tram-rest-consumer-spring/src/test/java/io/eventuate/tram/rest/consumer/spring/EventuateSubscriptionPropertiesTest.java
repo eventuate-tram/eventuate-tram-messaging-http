@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = EventuateSubscriptionPropertiesTest.Config.class)
@@ -25,16 +26,24 @@ public class EventuateSubscriptionPropertiesTest {
   public void testProperties() {
     assertEquals(3, eventuateSubscriptionProperties.getMessage().size());
 
-    SubscriptionData subscription1 = eventuateSubscriptionProperties.getMessage().get("1");
+    MessageSubscriptionData messageSubscription1 = eventuateSubscriptionProperties.getMessage().get("1");
 
-    assertEquals("orders,order-history", subscription1.getChannels());
+    assertEquals("orders,order-history", messageSubscription1.getChannels());
+    assertTrue(messageSubscription1.getUrl().endsWith("messages/1"));
 
-    SubscriptionData subscription2 = eventuateSubscriptionProperties.getMessage().get("2");
+    MessageSubscriptionData messageSubscription2 = eventuateSubscriptionProperties.getMessage().get("2");
 
-    assertEquals("customers,customer-history", subscription2.getChannels());
+    assertEquals("customers,customer-history", messageSubscription2.getChannels());
+    assertTrue(messageSubscription2.getUrl().endsWith("messages/2"));
 
-    SubscriptionData subscription3 = eventuateSubscriptionProperties.getMessage().get("3");
+    MessageSubscriptionData messageSubscription3 = eventuateSubscriptionProperties.getMessage().get("3");
 
-    assertEquals("test-channel", subscription3.getChannels());
+    assertEquals("test-channel", messageSubscription3.getChannels());
+    assertTrue(messageSubscription3.getUrl().endsWith("messages/3"));
+
+    EventSubscriptionData eventSubscription4 = eventuateSubscriptionProperties.getEvent().get("4");
+
+    assertEquals("TestAggregate", eventSubscription4.getAggregates());
+    assertTrue(eventSubscription4.getUrl().endsWith("/test-event"));
   }
 }

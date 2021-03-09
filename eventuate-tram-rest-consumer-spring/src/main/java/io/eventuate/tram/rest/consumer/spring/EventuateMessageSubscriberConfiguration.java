@@ -25,11 +25,9 @@ public class EventuateMessageSubscriberConfiguration {
   public EventuateTramHttpMessageSubscriber eventuateTramRestMessageSubscriber(CircuitBreaker circuitBreaker,
                                                                                Retry retry,
                                                                                ProxyClient proxyClient,
-                                                                               HeartbeatService heartbeatService,
-                                                                               EventuateHttpConsumerProperties httpConsumerProperties) {
+                                                                               HeartbeatService heartbeatService) {
 
-    return new EventuateTramHttpMessageSubscriber(circuitBreaker,
-            retry, proxyClient, heartbeatService, httpConsumerProperties.getMessageConsumerBaseUrl());
+    return new EventuateTramHttpMessageSubscriber(circuitBreaker, retry, proxyClient, heartbeatService);
   }
 
   @Bean

@@ -1,5 +1,6 @@
 package io.eventuate.tram.messaging.proxy.service;
 
+import io.eventuate.tram.consumer.http.common.SubscriptionType;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
@@ -7,28 +8,36 @@ import java.util.Objects;
 import java.util.Set;
 
 public class SubscriptionInfo {
+  private SubscriptionType subscriptionType;
   private String subscriptionInstanceId;
   private String subscriberId;
   private Set<String> channels;
   private String callbackUrl;
-  private String callbackSubscriptionId;
+  private boolean discardSubscriptionIdInCallbackUrl;
 
   public SubscriptionInfo() {
   }
 
-  public SubscriptionInfo(String subscriptionInstanceId, String subscriberId, Set<String> channels, String callbackUrl) {
+  public SubscriptionInfo(SubscriptionType subscriptionType,
+                          String subscriptionInstanceId,
+                          String subscriberId,
+                          Set<String> channels,
+                          String callbackUrl,
+                          boolean discardSubscriptionIdInCallbackUrl) {
+    this.subscriptionType = subscriptionType;
     this.subscriptionInstanceId = subscriptionInstanceId;
     this.subscriberId = subscriberId;
     this.channels = channels;
     this.callbackUrl = callbackUrl;
+    this.discardSubscriptionIdInCallbackUrl = discardSubscriptionIdInCallbackUrl;
   }
 
-  public SubscriptionInfo(String subscriptionInstanceId, String subscriberId, Set<String> channels, String callbackUrl, String callbackSubscriptionId) {
-    this.subscriptionInstanceId = subscriptionInstanceId;
-    this.subscriberId = subscriberId;
-    this.channels = channels;
-    this.callbackUrl = callbackUrl;
-    this.callbackSubscriptionId = callbackSubscriptionId;
+  public SubscriptionType getSubscriptionType() {
+    return subscriptionType;
+  }
+
+  public void setSubscriptionType(SubscriptionType subscriptionType) {
+    this.subscriptionType = subscriptionType;
   }
 
   public String getSubscriptionInstanceId() {
@@ -63,12 +72,12 @@ public class SubscriptionInfo {
     this.callbackUrl = callbackUrl;
   }
 
-  public String getCallbackSubscriptionId() {
-    return callbackSubscriptionId;
+  public boolean isDiscardSubscriptionIdInCallbackUrl() {
+    return discardSubscriptionIdInCallbackUrl;
   }
 
-  public void setCallbackSubscriptionId(String callbackSubscriptionId) {
-    this.callbackSubscriptionId = callbackSubscriptionId;
+  public void setDiscardSubscriptionIdInCallbackUrl(boolean discardSubscriptionIdInCallbackUrl) {
+    this.discardSubscriptionIdInCallbackUrl = discardSubscriptionIdInCallbackUrl;
   }
 
   @Override
@@ -78,7 +87,7 @@ public class SubscriptionInfo {
 
   @Override
   public int hashCode() {
-    return Objects.hash(subscriptionInstanceId, subscriberId, channels, callbackUrl, callbackSubscriptionId);
+    return Objects.hash(subscriptionType, subscriptionInstanceId, subscriberId, channels, callbackUrl, discardSubscriptionIdInCallbackUrl);
   }
 
   @Override
