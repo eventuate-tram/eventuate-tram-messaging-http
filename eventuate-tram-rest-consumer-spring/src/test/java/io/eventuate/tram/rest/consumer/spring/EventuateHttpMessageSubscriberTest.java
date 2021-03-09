@@ -21,10 +21,10 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = RestSubscriberTest.Config.class, webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-public class RestSubscriberTest {
+@SpringBootTest(classes = EventuateHttpMessageSubscriberTest.Config.class, webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+public class EventuateHttpMessageSubscriberTest {
   @Configuration
-  @Import({RestSubscriberConfiguration.class, TramMessageProducerJdbcConfiguration.class})
+  @Import({EventuateMessageSubscriberConfiguration.class, TramMessageProducerJdbcConfiguration.class})
   @EnableAutoConfiguration
   @ComponentScan
   public static class Config {

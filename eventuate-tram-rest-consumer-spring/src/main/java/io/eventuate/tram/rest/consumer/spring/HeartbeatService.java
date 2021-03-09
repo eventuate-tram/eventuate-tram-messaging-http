@@ -3,7 +3,6 @@ package io.eventuate.tram.rest.consumer.spring;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.Timer;
@@ -21,7 +20,7 @@ public class HeartbeatService {
 
   public HeartbeatService(CircuitBreaker circuitBreaker,
                           ProxyClient proxyClient,
-                          HttpConsumerProperties httpConsumerProperties) {
+                          EventuateHttpConsumerProperties httpConsumerProperties) {
     this.circuitBreaker = circuitBreaker;
     this.proxyClient = proxyClient;
     this.interval = httpConsumerProperties.getHeartBeatInterval();

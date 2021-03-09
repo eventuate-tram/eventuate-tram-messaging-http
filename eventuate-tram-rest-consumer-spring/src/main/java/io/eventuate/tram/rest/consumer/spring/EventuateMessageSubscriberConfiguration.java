@@ -13,39 +13,39 @@ import java.time.Duration;
 
 @Configuration
 @EnableConfigurationProperties(EventuateSubscriptionProperties.class)
-public class RestSubscriberConfiguration {
+public class EventuateMessageSubscriberConfiguration {
 
   @Bean
-  public EventuateTramRestMessageSubscriptionInitializer eventuateTramRestMessageSubscriptionInitializer(EventuateTramRestMessageSubscriber eventuateTramRestMessageSubscriber,
+  public EventuateTramHttpMessageSubscriptionInitializer eventuateTramRestMessageSubscriptionInitializer(EventuateTramHttpMessageSubscriber eventuateTramHttpMessageSubscriber,
                                                                                                          EventuateSubscriptionProperties eventuateSubscriptionProperties) {
-    return new EventuateTramRestMessageSubscriptionInitializer(eventuateSubscriptionProperties, eventuateTramRestMessageSubscriber);
+    return new EventuateTramHttpMessageSubscriptionInitializer(eventuateSubscriptionProperties, eventuateTramHttpMessageSubscriber);
   }
 
   @Bean
-  public EventuateTramRestMessageSubscriber eventuateTramRestMessageSubscriber(CircuitBreaker circuitBreaker,
+  public EventuateTramHttpMessageSubscriber eventuateTramRestMessageSubscriber(CircuitBreaker circuitBreaker,
                                                                                Retry retry,
                                                                                ProxyClient proxyClient,
                                                                                HeartbeatService heartbeatService,
-                                                                               HttpConsumerProperties httpConsumerProperties) {
+                                                                               EventuateHttpConsumerProperties httpConsumerProperties) {
 
-    return new EventuateTramRestMessageSubscriber(circuitBreaker,
-            retry, proxyClient, heartbeatService, httpConsumerProperties.getRestConsumerBaseUrl());
+    return new EventuateTramHttpMessageSubscriber(circuitBreaker,
+            retry, proxyClient, heartbeatService, httpConsumerProperties.getMessageConsumerBaseUrl());
   }
 
   @Bean
   public HeartbeatService heartbeatService(CircuitBreaker circuitBreaker,
                                            ProxyClient proxyClient,
-                                           HttpConsumerProperties httpConsumerProperties) {
+                                           EventuateHttpConsumerProperties httpConsumerProperties) {
     return new HeartbeatService(circuitBreaker, proxyClient, httpConsumerProperties);
   }
 
   @Bean
-  public ProxyClient proxyClient(RestTemplate restTemplate, HttpConsumerProperties httpConsumerProperties) {
+  public ProxyClient proxyClient(RestTemplate restTemplate, EventuateHttpConsumerProperties httpConsumerProperties) {
     return new ProxyClient(restTemplate, httpConsumerProperties.getHttpProxyBaseUrl());
   }
 
   @Bean
-  public Retry retry(HttpConsumerProperties httpConsumerProperties) {
+  public Retry retry(EventuateHttpConsumerProperties httpConsumerProperties) {
     RetryConfig retryConfig = RetryConfig
             .custom()
             .waitDuration(Duration.ofMillis(httpConsumerProperties.getRetryRequestTimeout()))
@@ -56,7 +56,7 @@ public class RestSubscriberConfiguration {
   }
 
   @Bean
-  public CircuitBreaker circuitBreaker(HttpConsumerProperties httpConsumerProperties) {
+  public CircuitBreaker circuitBreaker(EventuateHttpConsumerProperties httpConsumerProperties) {
     CircuitBreakerConfig circuitBreakerConfig = CircuitBreakerConfig
             .custom()
             .minimumNumberOfCalls(httpConsumerProperties.getRequestCircuitBreakerCalls())
@@ -72,7 +72,7 @@ public class RestSubscriberConfiguration {
   }
 
   @Bean
-  public HttpConsumerProperties httpConsumerProperties() {
-    return new HttpConsumerProperties();
+  public EventuateHttpConsumerProperties eventuateHttpConsumerProperties() {
+    return new EventuateHttpConsumerProperties();
   }
 }

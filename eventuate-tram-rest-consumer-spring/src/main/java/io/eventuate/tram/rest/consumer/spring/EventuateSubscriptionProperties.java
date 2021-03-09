@@ -4,7 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.Map;
 
-@ConfigurationProperties(prefix = "subscription")
+@ConfigurationProperties(prefix = "eventuate.subscription")
 public class EventuateSubscriptionProperties {
   private Map<String, SubscriptionData> message;
 

@@ -3,12 +3,12 @@ package io.eventuate.tram.rest.consumer.spring;
 
 import org.springframework.beans.factory.annotation.Value;
 
-public class HttpConsumerProperties {
+public class EventuateHttpConsumerProperties {
   @Value("${eventuate.http.consumer.heartbeat.interval:#{5000}}")
   private int heartBeatInterval;
 
-  @Value("${eventuate.rest.consumer.base.url}")
-  private String restConsumerBaseUrl;
+  @Value("${eventuate.message.consumer.base.url}")
+  private String messageConsumerBaseUrl;
 
   @Value("${eventuate.http.proxy.base.url}")
   private String httpProxyBaseUrl;
@@ -29,8 +29,8 @@ public class HttpConsumerProperties {
     return heartBeatInterval;
   }
 
-  public String getRestConsumerBaseUrl() {
-    return restConsumerBaseUrl;
+  public String getMessageConsumerBaseUrl() {
+    return messageConsumerBaseUrl;
   }
 
   public String getHttpProxyBaseUrl() {

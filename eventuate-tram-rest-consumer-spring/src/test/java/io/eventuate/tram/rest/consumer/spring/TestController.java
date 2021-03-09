@@ -16,7 +16,7 @@ public class TestController {
     return receivedMessages;
   }
 
-  @PostMapping(path = "/messages/subscription3")
+  @PostMapping(path = "/messages/3")
   public void handleMessages(@RequestBody HttpMessage httpMessage) {
     receivedMessages.add(httpMessage);
   }

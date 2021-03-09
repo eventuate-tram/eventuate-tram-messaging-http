@@ -7,31 +7,31 @@ import io.github.resilience4j.retry.Retry;
 import java.util.HashSet;
 import java.util.Set;
 
-public class EventuateTramRestMessageSubscriber {
+public class EventuateTramHttpMessageSubscriber {
   private CircuitBreaker circuitBreaker;
   private Retry retry;
-  private String httpConsumerBaseUrl;
+  private String messageConsumerBaseUrl;
   private ProxyClient proxyClient;
   private HeartbeatService heartbeatService;
   private Set<String> subscriptions = new HashSet<>();
 
-  public EventuateTramRestMessageSubscriber(CircuitBreaker circuitBreaker,
+  public EventuateTramHttpMessageSubscriber(CircuitBreaker circuitBreaker,
                                             Retry retry,
                                             ProxyClient proxyClient,
                                             HeartbeatService heartbeatService,
-                                            String httpConsumerBaseUrl) {
+                                            String messageConsumerBaseUrl) {
 
     this.retry = retry;
     this.circuitBreaker = circuitBreaker;
     this.proxyClient = proxyClient;
     this.heartbeatService = heartbeatService;
-    this.httpConsumerBaseUrl = httpConsumerBaseUrl;
+    this.messageConsumerBaseUrl = messageConsumerBaseUrl;
   }
 
-  public Runnable subscribe(String subscriberId, String callSubscriptionId, Set<String> channels) {
+  public Runnable subscribe(String subscriberId, Set<String> channels) {
     String subscriptionInstanceId = retry.executeSupplier(() ->
             circuitBreaker.executeSupplier(() ->
-                    proxyClient.subscribe(new SubscribeRequest(callSubscriptionId, subscriberId, channels, httpConsumerBaseUrl))));
+                    proxyClient.subscribe(new SubscribeRequest(subscriberId, subscriberId, channels, messageConsumerBaseUrl))));
 
     heartbeatService.addSubscription(subscriptionInstanceId);
 
