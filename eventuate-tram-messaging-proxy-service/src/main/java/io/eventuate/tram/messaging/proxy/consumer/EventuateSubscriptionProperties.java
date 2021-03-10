@@ -1,4 +1,4 @@
-package io.eventuate.tram.rest.consumer.spring;
+package io.eventuate.tram.messaging.proxy.consumer;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

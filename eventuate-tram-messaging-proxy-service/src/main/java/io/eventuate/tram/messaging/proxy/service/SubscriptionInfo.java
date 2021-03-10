@@ -1,6 +1,5 @@
 package io.eventuate.tram.messaging.proxy.service;
 
-import io.eventuate.tram.consumer.http.common.SubscriptionType;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
@@ -8,36 +7,22 @@ import java.util.Objects;
 import java.util.Set;
 
 public class SubscriptionInfo {
-  private SubscriptionType subscriptionType;
   private String subscriptionInstanceId;
   private String subscriberId;
   private Set<String> channels;
   private String callbackUrl;
-  private boolean discardSubscriptionIdInCallbackUrl;
 
   public SubscriptionInfo() {
   }
 
-  public SubscriptionInfo(SubscriptionType subscriptionType,
-                          String subscriptionInstanceId,
+  public SubscriptionInfo(String subscriptionInstanceId,
                           String subscriberId,
                           Set<String> channels,
-                          String callbackUrl,
-                          boolean discardSubscriptionIdInCallbackUrl) {
-    this.subscriptionType = subscriptionType;
+                          String callbackUrl) {
     this.subscriptionInstanceId = subscriptionInstanceId;
     this.subscriberId = subscriberId;
     this.channels = channels;
     this.callbackUrl = callbackUrl;
-    this.discardSubscriptionIdInCallbackUrl = discardSubscriptionIdInCallbackUrl;
-  }
-
-  public SubscriptionType getSubscriptionType() {
-    return subscriptionType;
-  }
-
-  public void setSubscriptionType(SubscriptionType subscriptionType) {
-    this.subscriptionType = subscriptionType;
   }
 
   public String getSubscriptionInstanceId() {
@@ -72,13 +57,6 @@ public class SubscriptionInfo {
     this.callbackUrl = callbackUrl;
   }
 
-  public boolean isDiscardSubscriptionIdInCallbackUrl() {
-    return discardSubscriptionIdInCallbackUrl;
-  }
-
-  public void setDiscardSubscriptionIdInCallbackUrl(boolean discardSubscriptionIdInCallbackUrl) {
-    this.discardSubscriptionIdInCallbackUrl = discardSubscriptionIdInCallbackUrl;
-  }
 
   @Override
   public boolean equals(Object o) {
@@ -87,7 +65,7 @@ public class SubscriptionInfo {
 
   @Override
   public int hashCode() {
-    return Objects.hash(subscriptionType, subscriptionInstanceId, subscriberId, channels, callbackUrl, discardSubscriptionIdInCallbackUrl);
+    return Objects.hash(subscriptionInstanceId, subscriberId, channels, callbackUrl);
   }
 
   @Override

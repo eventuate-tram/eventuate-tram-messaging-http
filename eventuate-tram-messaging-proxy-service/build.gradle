@@ -8,6 +8,7 @@ dependencies {
 
     compile "io.eventuate.tram.core:eventuate-tram-spring-consumer-jdbc:$eventuateTramVersion"
     compile "io.eventuate.tram.core:eventuate-tram-spring-consumer-kafka:$eventuateTramVersion"
+    compile "io.eventuate.tram.core:eventuate-tram-events:$eventuateTramVersion"
 
     compile "org.springframework.boot:spring-boot-starter"
     compile "org.springframework.boot:spring-boot-starter-actuator"
@@ -18,5 +19,11 @@ dependencies {
     testCompile "junit:junit:4.12"
     testCompile "org.springframework.boot:spring-boot-starter-test"
     testCompile "io.eventuate.util:eventuate-util-test:$eventuateUtilVersion"
+
+    testCompile "io.eventuate.tram.core:eventuate-tram-spring-producer-jdbc:$eventuateTramVersion"
+    testCompile "io.eventuate.tram.core:eventuate-tram-spring-events-publisher:$eventuateTramVersion"
 }
 
+test {
+    forkEvery 1
+}

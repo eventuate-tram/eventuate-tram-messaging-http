@@ -1,6 +1,7 @@
-package io.eventuate.tram.rest.consumer.spring;
+package io.eventuate.tram.messaging.proxy.consumer;
 
 import io.eventuate.tram.consumer.http.common.HttpMessage;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -11,13 +12,13 @@ import java.util.concurrent.LinkedBlockingDeque;
 @RestController
 public class TestController {
   private BlockingQueue<HttpMessage> receivedMessages = new LinkedBlockingDeque<>();
-  private BlockingQueue<TestEvent> receivedEvents = new LinkedBlockingDeque<>();
+  private BlockingQueue<TestEventInfo> receivedEvents = new LinkedBlockingDeque<>();
 
   public BlockingQueue<HttpMessage> getReceivedMessages() {
     return receivedMessages;
   }
 
-  public BlockingQueue<TestEvent> getReceivedEvents() {
+  public BlockingQueue<TestEventInfo> getReceivedEvents() {
     return receivedEvents;
   }
 
@@ -26,8 +27,8 @@ public class TestController {
     receivedMessages.add(httpMessage);
   }
 
-  @PostMapping(path = "/test-event")
-  public void handleEvent(@RequestBody TestEvent testEvent) {
-    receivedEvents.add(testEvent);
+  @PostMapping(path = "/events/4/TestAggregate/{aggregateId}/io.eventuate.tram.messaging.proxy.consumer.TestEvent/{eventId}")
+  public void handleEvent(@PathVariable String aggregateId, @PathVariable String eventId, @RequestBody TestEvent testEvent) {
+    receivedEvents.add(new TestEventInfo(testEvent, aggregateId, eventId));
   }
 }

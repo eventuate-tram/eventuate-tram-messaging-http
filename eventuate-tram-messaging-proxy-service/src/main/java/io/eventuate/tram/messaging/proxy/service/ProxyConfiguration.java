@@ -19,7 +19,9 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.web.client.RestTemplate;
 
 @Configuration
-@Import({TramConsumerJdbcAutoConfiguration.class, EventuateTramKafkaMessageConsumerConfiguration.class, EventuateCommonJdbcOperationsConfiguration.class})
+@Import({TramConsumerJdbcAutoConfiguration.class,
+        EventuateTramKafkaMessageConsumerConfiguration.class,
+        EventuateCommonJdbcOperationsConfiguration.class})
 public class ProxyConfiguration {
 
   @Bean

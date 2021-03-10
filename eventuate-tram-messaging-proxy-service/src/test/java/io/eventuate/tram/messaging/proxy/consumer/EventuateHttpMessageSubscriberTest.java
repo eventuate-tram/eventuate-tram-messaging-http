@@ -1,4 +1,4 @@
-package io.eventuate.tram.rest.consumer.spring;
+package io.eventuate.tram.messaging.proxy.consumer;
 
 import io.eventuate.tram.consumer.http.common.HttpMessage;
 import io.eventuate.tram.events.publisher.DomainEventPublisher;
@@ -68,14 +68,15 @@ public class EventuateHttpMessageSubscriberTest {
 
   private void sendEvent() {
     id = generateId();
-    domainEventPublisher.publish("TestAggregate", id, singletonList(new TestEvent(id, payload)));
+    domainEventPublisher.publish("TestAggregate", id, singletonList(new TestEvent(payload)));
   }
 
   private void assertEvent() throws InterruptedException {
-    TestEvent testEvent = testController.getReceivedEvents().poll(30, TimeUnit.SECONDS);
-    Assert.assertNotNull(testEvent);
-    Assert.assertEquals(id, testEvent.getId());
-    Assert.assertEquals(payload, testEvent.getSomeImportantData());
+    TestEventInfo testEventInfo = testController.getReceivedEvents().poll(30, TimeUnit.SECONDS);
+    Assert.assertNotNull(testEventInfo);
+    Assert.assertNotNull(payload, testEventInfo.getEventId());
+    Assert.assertEquals(payload, testEventInfo.getTestEvent().getSomeImportantData());
+    Assert.assertEquals(id, testEventInfo.getAggregateId());
   }
 
   private void sendMessage() {

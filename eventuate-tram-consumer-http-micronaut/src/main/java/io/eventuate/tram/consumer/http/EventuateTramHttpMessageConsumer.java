@@ -2,7 +2,6 @@ package io.eventuate.tram.consumer.http;
 
 import io.eventuate.tram.consumer.common.MessageConsumerImplementation;
 import io.eventuate.tram.consumer.http.common.SubscribeRequest;
-import io.eventuate.tram.consumer.http.common.SubscriptionType;
 import io.eventuate.tram.messaging.consumer.MessageHandler;
 import io.eventuate.tram.messaging.consumer.MessageSubscription;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
@@ -43,7 +42,7 @@ public class EventuateTramHttpMessageConsumer implements MessageConsumerImplemen
   public MessageSubscription subscribe(String subscriberId, Set<String> channels, MessageHandler handler) {
     String subscriptionInstanceId = retry.executeSupplier(() ->
             circuitBreaker.executeSupplier(() ->
-                    proxyClient.subscribe(new SubscribeRequest(SubscriptionType.MESSAGE, subscriberId, channels, httpConsumerBaseUrl, false))));
+                    proxyClient.subscribe(new SubscribeRequest(subscriberId, channels, httpConsumerBaseUrl))));
 
 
     heartbeatService.addSubscription(subscriptionInstanceId);

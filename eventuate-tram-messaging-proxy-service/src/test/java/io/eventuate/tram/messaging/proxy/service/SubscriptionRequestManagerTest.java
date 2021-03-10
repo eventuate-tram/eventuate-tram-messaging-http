@@ -1,6 +1,5 @@
 package io.eventuate.tram.messaging.proxy.service;
 
-import io.eventuate.tram.consumer.http.common.SubscriptionType;
 import io.eventuate.util.test.async.Eventually;
 import org.apache.curator.framework.CuratorFramework;
 import org.junit.Assert;
@@ -31,8 +30,7 @@ public class SubscriptionRequestManagerTest {
 
   @Before
   public void init() {
-    subscriptionInfo = new SubscriptionInfo(SubscriptionType.MESSAGE,
-            generateId(), generateId(), Collections.singleton(generateId()), generateId(), false);
+    subscriptionInfo = new SubscriptionInfo(generateId(), generateId(), Collections.singleton(generateId()), generateId());
 
     addedSubscription = new AtomicReference<>();
     removedSubscription = new AtomicReference<>();

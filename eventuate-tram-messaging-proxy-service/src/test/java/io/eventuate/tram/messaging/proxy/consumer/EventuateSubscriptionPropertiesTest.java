@@ -1,4 +1,4 @@
-package io.eventuate.tram.rest.consumer.spring;
+package io.eventuate.tram.messaging.proxy.consumer;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,7 +43,8 @@ public class EventuateSubscriptionPropertiesTest {
 
     EventSubscriptionData eventSubscription4 = eventuateSubscriptionProperties.getEvent().get("4");
 
-    assertEquals("TestAggregate", eventSubscription4.getAggregates());
-    assertTrue(eventSubscription4.getUrl().endsWith("/test-event"));
+    assertEquals("TestAggregate", eventSubscription4.getAggregate());
+    assertEquals("io.eventuate.tram.messaging.proxy.consumer.TestEvent", eventSubscription4.getEvents());
+    assertTrue(eventSubscription4.getBaseUrl().endsWith("/events/4"));
   }
 }

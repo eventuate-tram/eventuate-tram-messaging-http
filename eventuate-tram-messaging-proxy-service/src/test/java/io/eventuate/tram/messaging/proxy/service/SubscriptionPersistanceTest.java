@@ -1,6 +1,5 @@
 package io.eventuate.tram.messaging.proxy.service;
 
-import io.eventuate.tram.consumer.http.common.SubscriptionType;
 import org.apache.curator.framework.CuratorFramework;
 import org.junit.Assert;
 import org.junit.Before;
@@ -51,12 +50,10 @@ public class SubscriptionPersistanceTest {
     Set<SubscriptionInfo> subscriptionInfos = new HashSet<>();
 
     for (int i = 0; i < 10; i++) {
-      subscriptionInfos.add(new SubscriptionInfo(SubscriptionType.MESSAGE,
-              generateId(),
+      subscriptionInfos.add(new SubscriptionInfo(generateId(),
               generateId(),
               Collections.singleton(generateId()),
-              generateId(),
-              false));
+              generateId()));
     }
 
     return subscriptionInfos;

@@ -1,25 +1,15 @@
-package io.eventuate.tram.rest.consumer.spring;
+package io.eventuate.tram.messaging.proxy.consumer;
 
 import io.eventuate.tram.events.common.DomainEvent;
 
 public class TestEvent implements DomainEvent {
-  private String id;
   private String someImportantData;
 
   public TestEvent() {
   }
 
-  public TestEvent(String id, String someImportantData) {
-    this.id = id;
+  public TestEvent(String someImportantData) {
     this.someImportantData = someImportantData;
-  }
-
-  public String getId() {
-    return id;
-  }
-
-  public void setId(String id) {
-    this.id = id;
   }
 
   public String getSomeImportantData() {
