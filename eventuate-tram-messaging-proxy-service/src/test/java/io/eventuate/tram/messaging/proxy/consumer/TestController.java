@@ -22,12 +22,12 @@ public class TestController {
     return receivedEvents;
   }
 
-  @PostMapping(path = "/messages/3")
+  @PostMapping(path = "/messages/s3")
   public void handleMessages(@RequestBody HttpMessage httpMessage) {
     receivedMessages.add(httpMessage);
   }
 
-  @PostMapping(path = "/events/4/TestAggregate/{aggregateId}/io.eventuate.tram.messaging.proxy.consumer.TestEvent/{eventId}")
+  @PostMapping(path = "/events/s4/TestAggregate/{aggregateId}/io.eventuate.tram.messaging.proxy.consumer.TestEvent/{eventId}")
   public void handleEvent(@PathVariable String aggregateId, @PathVariable String eventId, @RequestBody TestEvent testEvent) {
     receivedEvents.add(new TestEventInfo(testEvent, aggregateId, eventId));
   }

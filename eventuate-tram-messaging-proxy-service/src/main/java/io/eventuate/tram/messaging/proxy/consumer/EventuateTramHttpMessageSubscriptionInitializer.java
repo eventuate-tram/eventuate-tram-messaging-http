@@ -29,7 +29,7 @@ public class EventuateTramHttpMessageSubscriptionInitializer {
 
       subscriptionService.subscribeToMessage(subscriberId,
               Arrays.stream(messageSubscriptionData.getChannels().split(",")).collect(Collectors.toSet()),
-              messageSubscriptionData.getUrl(),
+              messageSubscriptionData.getBaseUrl(),
               subscriberId);
     });
   }

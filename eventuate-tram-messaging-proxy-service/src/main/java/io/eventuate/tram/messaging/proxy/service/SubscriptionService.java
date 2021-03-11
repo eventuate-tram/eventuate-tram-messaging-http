@@ -53,11 +53,11 @@ public class SubscriptionService {
   public String subscribeToEvent(String subscriberId,
                                  String aggregate,
                                  Set<String> events,
-                                 String baseUrl) {
+                                 String callbackUrl) {
     messageSubscriptions.computeIfAbsent(subscriberId, instanceId -> {
       MessageSubscription messageSubscription = messageConsumerImplementation.subscribe(subscriberId,
               Collections.singleton(aggregate),
-              message -> publishEvent(message, aggregate, events, baseUrl));
+              message -> publishEvent(message, aggregate, events, callbackUrl, subscriberId));
 
       return messageSubscription;
     });
@@ -72,7 +72,7 @@ public class SubscriptionService {
     messageSubscriptions.computeIfAbsent(subscriptionInstanceId, instanceId -> {
       MessageSubscription messageSubscription = messageConsumerImplementation.subscribe(subscriberId,
               channels,
-              message -> publishMessage(message, callbackUrl, subscriptionInstanceId, subscriptionInstanceId.equals(subscriberId)));
+              message -> publishMessage(message, callbackUrl, subscriptionInstanceId));
 
       return messageSubscription;
     });
@@ -82,9 +82,8 @@ public class SubscriptionService {
 
   private void publishMessage(Message message,
                               String callbackUrl,
-                              String subscriptionInstanceId,
-                              boolean discardSubscriptionIdToCallbackUrl) {
-    String location = callbackUrl + (discardSubscriptionIdToCallbackUrl ? "" : "/" + subscriptionInstanceId);
+                              String subscriptionInstanceId) {
+    String location = callbackUrl + "/" + subscriptionInstanceId;
 
     restTemplate.postForLocation(location, new HttpMessage(message.getId(), message.getHeaders(), message.getPayload()));
   }
@@ -92,7 +91,8 @@ public class SubscriptionService {
   private void publishEvent(Message message,
                             String aggregate,
                             Set<String> events,
-                            String baseUrl) {
+                            String callbackUrl,
+                            String subscriberId) {
 
     String event = message.getRequiredHeader(EventMessageHeaders.EVENT_TYPE);
 
@@ -100,8 +100,9 @@ public class SubscriptionService {
       return;
     }
 
-    String location = String.format("%s/%s/%s/%s/%s",
-            baseUrl,
+    String location = String.format("%s/%s/%s/%s/%s/%s",
+            callbackUrl,
+            subscriberId,
             aggregate,
             message.getRequiredHeader(EventMessageHeaders.AGGREGATE_ID),
             event,

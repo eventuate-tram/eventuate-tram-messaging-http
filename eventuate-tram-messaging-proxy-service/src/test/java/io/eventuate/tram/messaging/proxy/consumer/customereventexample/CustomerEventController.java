@@ -15,17 +15,17 @@ public class CustomerEventController {
     return receivedEvents;
   }
 
-  @PostMapping(path = "/events/5/Customer/{aggregateId}/io.eventuate.tram.messaging.proxy.consumer.customereventexample.CustomerCreditReservedEvent/{eventId}")
+  @PostMapping(path = "/events/s5/Customer/{aggregateId}/io.eventuate.tram.messaging.proxy.consumer.customereventexample.CustomerCreditReservedEvent/{eventId}")
   public void handleCustomerCreditReservedEvent(@PathVariable String aggregateId, @PathVariable String eventId, @RequestBody CustomerCreditReservedEvent customerCreditReservedEvent) {
     receivedEvents.put("handleCustomerCreditReservedEvent", customerCreditReservedEvent);
   }
 
-  @PostMapping(path = "/events/5/Customer/{aggregateId}/io.eventuate.tram.messaging.proxy.consumer.customereventexample.CustomerCreditReservationFailedEvent/{eventId}")
+  @PostMapping(path = "/events/s5/Customer/{aggregateId}/io.eventuate.tram.messaging.proxy.consumer.customereventexample.CustomerCreditReservationFailedEvent/{eventId}")
   public void handleCustomerCreditReservationFailedEvent(@PathVariable String aggregateId, @PathVariable String eventId, @RequestBody CustomerCreditReservationFailedEvent customerCreditReservationFailedEvent) {
     receivedEvents.put("handleCustomerCreditReservationFailedEvent", customerCreditReservationFailedEvent);
   }
 
-  @PostMapping(path = "/events/5/Customer/{aggregateId}/io.eventuate.tram.messaging.proxy.consumer.customereventexample.CustomerValidationFailedEvent/{eventId}")
+  @PostMapping(path = "/events/s5/Customer/{aggregateId}/io.eventuate.tram.messaging.proxy.consumer.customereventexample.CustomerValidationFailedEvent/{eventId}")
   public void handleCustomerValidationFailedEvent(@PathVariable String aggregateId, @PathVariable String eventId, @RequestBody CustomerValidationFailedEvent customerValidationFailedEvent) {
     receivedEvents.put("handleCustomerValidationFailedEvent", customerValidationFailedEvent);
   }

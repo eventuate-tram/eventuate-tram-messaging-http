@@ -26,25 +26,25 @@ public class EventuateSubscriptionPropertiesTest {
   public void testProperties() {
     assertEquals(3, eventuateSubscriptionProperties.getMessage().size());
 
-    MessageSubscriptionData messageSubscription1 = eventuateSubscriptionProperties.getMessage().get("1");
+    MessageSubscriptionData messageSubscription1 = eventuateSubscriptionProperties.getMessage().get("s1");
 
     assertEquals("orders,order-history", messageSubscription1.getChannels());
-    assertTrue(messageSubscription1.getUrl().endsWith("messages/1"));
+    assertTrue(messageSubscription1.getBaseUrl().endsWith("messages"));
 
-    MessageSubscriptionData messageSubscription2 = eventuateSubscriptionProperties.getMessage().get("2");
+    MessageSubscriptionData messageSubscription2 = eventuateSubscriptionProperties.getMessage().get("s2");
 
     assertEquals("customers,customer-history", messageSubscription2.getChannels());
-    assertTrue(messageSubscription2.getUrl().endsWith("messages/2"));
+    assertTrue(messageSubscription2.getBaseUrl().endsWith("messages"));
 
-    MessageSubscriptionData messageSubscription3 = eventuateSubscriptionProperties.getMessage().get("3");
+    MessageSubscriptionData messageSubscription3 = eventuateSubscriptionProperties.getMessage().get("s3");
 
     assertEquals("test-channel", messageSubscription3.getChannels());
-    assertTrue(messageSubscription3.getUrl().endsWith("messages/3"));
+    assertTrue(messageSubscription3.getBaseUrl().endsWith("messages"));
 
-    EventSubscriptionData eventSubscription4 = eventuateSubscriptionProperties.getEvent().get("4");
+    EventSubscriptionData eventSubscription4 = eventuateSubscriptionProperties.getEvent().get("s4");
 
     assertEquals("TestAggregate", eventSubscription4.getAggregate());
     assertEquals("io.eventuate.tram.messaging.proxy.consumer.TestEvent", eventSubscription4.getEvents());
-    assertTrue(eventSubscription4.getBaseUrl().endsWith("/events/4"));
+    assertTrue(eventSubscription4.getBaseUrl().endsWith("/events"));
   }
 }
