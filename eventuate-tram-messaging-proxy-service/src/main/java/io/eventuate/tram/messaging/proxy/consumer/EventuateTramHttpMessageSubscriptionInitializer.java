@@ -4,6 +4,7 @@ import io.eventuate.tram.messaging.proxy.service.SubscriptionService;
 
 import javax.annotation.PostConstruct;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class EventuateTramHttpMessageSubscriptionInitializer {
@@ -21,6 +22,7 @@ public class EventuateTramHttpMessageSubscriptionInitializer {
   public void subscribe() {
     subscribeToMessages();
     subscribeToEvents();
+    subscribeToCommands();
   }
 
   private void subscribeToMessages() {
@@ -42,6 +44,18 @@ public class EventuateTramHttpMessageSubscriptionInitializer {
               eventSubscriptionData.getAggregate(),
               Arrays.stream(eventSubscriptionData.getEvents().split(",")).collect(Collectors.toSet()),
               eventSubscriptionData.getBaseUrl());
+    });
+  }
+
+  private void subscribeToCommands() {
+    eventuateSubscriptionProperties.getCommand().keySet().forEach(dispatcherId -> {
+      CommandSubscriptionData commandSubscriptionData = eventuateSubscriptionProperties.getCommand().get(dispatcherId);
+
+      subscriptionService.subscribeToCommand(dispatcherId,
+              commandSubscriptionData.getChannel(),
+              Optional.ofNullable(commandSubscriptionData.getResource()),
+              Arrays.stream(commandSubscriptionData.getCommands().split(",")).collect(Collectors.toSet()),
+              commandSubscriptionData.getBaseUrl());
     });
   }
 }
