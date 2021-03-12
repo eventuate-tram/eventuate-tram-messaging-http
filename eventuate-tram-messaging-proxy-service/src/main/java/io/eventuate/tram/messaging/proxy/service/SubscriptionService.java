@@ -2,15 +2,17 @@ package io.eventuate.tram.messaging.proxy.service;
 
 import io.eventuate.common.json.mapper.JSonMapper;
 import io.eventuate.tram.commands.common.CommandMessageHeaders;
+import io.eventuate.tram.commands.common.CommandReplyOutcome;
 import io.eventuate.tram.commands.common.ReplyMessageHeaders;
 import io.eventuate.tram.commands.common.paths.ResourcePath;
 import io.eventuate.tram.commands.common.paths.ResourcePathPattern;
-import io.eventuate.tram.commands.consumer.CommandHandler;
 import io.eventuate.tram.consumer.common.MessageConsumerImplementation;
 import io.eventuate.tram.consumer.http.common.HttpMessage;
 import io.eventuate.tram.events.common.EventMessageHeaders;
 import io.eventuate.tram.messaging.common.Message;
 import io.eventuate.tram.messaging.consumer.MessageSubscription;
+import io.eventuate.tram.messaging.producer.MessageBuilder;
+import io.eventuate.tram.messaging.producer.MessageProducer;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -25,22 +27,23 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.EMPTY_MAP;
-
 public class SubscriptionService {
   private SubscriptionPersistenceService subscriptionPersistenceService;
   private SubscriptionRequestManager subscriptionRequestManager;
   private RestTemplate restTemplate;
   private MessageConsumerImplementation messageConsumerImplementation;
+  private MessageProducer messageProducer;
 
   public SubscriptionService(SubscriptionPersistenceService subscriptionPersistenceService,
                              SubscriptionRequestManager subscriptionRequestManager,
                              RestTemplate restTemplate,
-                             MessageConsumerImplementation messageConsumerImplementation) {
+                             MessageConsumerImplementation messageConsumerImplementation,
+                             MessageProducer messageProducer) {
     this.subscriptionPersistenceService = subscriptionPersistenceService;
     this.subscriptionRequestManager = subscriptionRequestManager;
     this.restTemplate = restTemplate;
     this.messageConsumerImplementation = messageConsumerImplementation;
+    this.messageProducer = messageProducer;
   }
 
   private ConcurrentMap<String, MessageSubscription> messageSubscriptions = new ConcurrentHashMap<>();
@@ -58,6 +61,49 @@ public class SubscriptionService {
             subscriberId, channels, callbackUrl));
 
     return subscriptionInstanceId;
+  }
+
+  public void subscribeToReply(String subscriberId,
+                               String replyChannel,
+                               Optional<String> resource,
+                               Set<String> commands,
+                               String callbackUrl) {
+    messageSubscriptions.computeIfAbsent(subscriberId, instanceId -> {
+      MessageSubscription messageSubscription = messageConsumerImplementation.subscribe(subscriberId,
+              Collections.singleton(replyChannel),
+              message -> publishReply(message, callbackUrl, subscriberId, commands, resource));
+
+      return messageSubscription;
+    });
+  }
+
+  private void publishReply(Message message,
+                            String callbackUrl,
+                            String subscriberId,
+                            Set<String> commands,
+                            Optional<String> resource) {
+    String command = message.getRequiredHeader(CommandMessageHeaders.inReply(CommandMessageHeaders.COMMAND_TYPE));
+
+    if (!commands.contains(command)) {
+      return;
+    }
+
+    if (!shouldPublishResource(resource, message.getHeader(CommandMessageHeaders.inReply(CommandMessageHeaders.RESOURCE)))) {
+      return;
+    }
+
+    String location = String.format("%s/%s/%s/%s/%s/%s%s",
+            callbackUrl,
+            subscriberId,
+            command,
+            message.getRequiredHeader(ReplyMessageHeaders.IN_REPLY_TO),
+            message.getRequiredHeader(ReplyMessageHeaders.REPLY_TYPE),
+            message.getRequiredHeader(ReplyMessageHeaders.REPLY_OUTCOME),
+            message.getHeader(CommandMessageHeaders.inReply(CommandMessageHeaders.RESOURCE)).orElse(""));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    restTemplate.postForLocation(location, new HttpEntity<>(message.getPayload(), headers));
   }
 
   public String subscribeToCommand(String commandDispatcherId,
@@ -151,20 +197,8 @@ public class SubscriptionService {
       return;
     }
 
-    if (resource.isPresent()) {
-      boolean resourceMatches = message
-              .getHeader(CommandMessageHeaders.RESOURCE)
-              .map(messageResource -> {
-                ResourcePathPattern resourcePathPattern = ResourcePathPattern.parse(resource.get());
-                ResourcePath resourcePath = ResourcePath.parse(messageResource);
-                return resourcePathPattern.isSatisfiedBy(resourcePath);
-              })
-              .orElse(false);
-
-
-      if (!resourceMatches) {
-        return;
-      }
+    if (!shouldPublishResource(resource, message.getHeader(CommandMessageHeaders.RESOURCE))) {
+      return;
     }
 
     String replyChannel = message.getRequiredHeader(CommandMessageHeaders.REPLY_TO);
@@ -181,8 +215,38 @@ public class SubscriptionService {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     Map<String, String> correlationHeaders = correlationHeaders(message.getHeaders());
-    headers.add("EVENTUATE_COMMAND_HEADERS", JSonMapper.toJson(correlationHeaders));
+    headers.add("EVENTUATE_COMMAND_REPLY_HEADERS", JSonMapper.toJson(correlationHeaders));
     restTemplate.postForLocation(location, new HttpEntity<>(message.getPayload(), headers));
+  }
+
+  private boolean shouldPublishResource(Optional<String> resource, Optional<String> messageResource) {
+    if (resource.isPresent()) {
+      return messageResource
+              .map(mr -> {
+                ResourcePathPattern resourcePathPattern = ResourcePathPattern.parse(resource.get());
+                ResourcePath resourcePath = ResourcePath.parse(mr);
+                return resourcePathPattern.isSatisfiedBy(resourcePath);
+              })
+              .orElse(false);
+
+    }
+
+    return true;
+  }
+
+  public void sendReply(String reply,
+                        CommandReplyOutcome outcome,
+                        String replyType,
+                        Map<String, String> headers,
+                        String destination) {
+    Message message = MessageBuilder
+            .withPayload(reply)
+            .withHeader(ReplyMessageHeaders.REPLY_OUTCOME, outcome.name())
+            .withHeader(ReplyMessageHeaders.REPLY_TYPE, replyType)
+            .withExtraHeaders("", headers)
+            .build();
+
+    messageProducer.send(destination, message);
   }
 
   private Map<String, String> correlationHeaders(Map<String, String> headers) {

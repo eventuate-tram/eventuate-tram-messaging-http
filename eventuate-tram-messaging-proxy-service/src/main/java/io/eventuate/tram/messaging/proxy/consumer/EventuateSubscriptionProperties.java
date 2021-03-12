@@ -7,9 +7,18 @@ import java.util.Map;
 
 @ConfigurationProperties(prefix = "eventuate.subscription")
 public class EventuateSubscriptionProperties {
+  private Map<String, ReplySubscriptionData> reply = Collections.emptyMap();
   private Map<String, CommandSubscriptionData> command = Collections.emptyMap();
   private Map<String, MessageSubscriptionData> message = Collections.emptyMap();
   private Map<String, EventSubscriptionData> event = Collections.emptyMap();
+
+  public Map<String, ReplySubscriptionData> getReply() {
+    return reply;
+  }
+
+  public void setReply(Map<String, ReplySubscriptionData> reply) {
+    this.reply = reply;
+  }
 
   public Map<String, CommandSubscriptionData> getCommand() {
     return command;

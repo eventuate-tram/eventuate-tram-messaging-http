@@ -5,6 +5,7 @@ import io.eventuate.tram.messaging.proxy.service.SubscriptionService;
 import javax.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class EventuateTramHttpMessageSubscriptionInitializer {
@@ -23,6 +24,7 @@ public class EventuateTramHttpMessageSubscriptionInitializer {
     subscribeToMessages();
     subscribeToEvents();
     subscribeToCommands();
+    subscribeToReplies();
   }
 
   private void subscribeToMessages() {
@@ -30,7 +32,7 @@ public class EventuateTramHttpMessageSubscriptionInitializer {
       MessageSubscriptionData messageSubscriptionData = eventuateSubscriptionProperties.getMessage().get(subscriberId);
 
       subscriptionService.subscribeToMessage(subscriberId,
-              Arrays.stream(messageSubscriptionData.getChannels().split(",")).collect(Collectors.toSet()),
+              stringToSet(messageSubscriptionData.getChannels()),
               messageSubscriptionData.getBaseUrl(),
               subscriberId);
     });
@@ -42,7 +44,7 @@ public class EventuateTramHttpMessageSubscriptionInitializer {
 
       subscriptionService.subscribeToEvent(subscriberId,
               eventSubscriptionData.getAggregate(),
-              Arrays.stream(eventSubscriptionData.getEvents().split(",")).collect(Collectors.toSet()),
+              stringToSet(eventSubscriptionData.getEvents()),
               eventSubscriptionData.getBaseUrl());
     });
   }
@@ -54,8 +56,24 @@ public class EventuateTramHttpMessageSubscriptionInitializer {
       subscriptionService.subscribeToCommand(dispatcherId,
               commandSubscriptionData.getChannel(),
               Optional.ofNullable(commandSubscriptionData.getResource()),
-              Arrays.stream(commandSubscriptionData.getCommands().split(",")).collect(Collectors.toSet()),
+              stringToSet(commandSubscriptionData.getCommands()),
               commandSubscriptionData.getBaseUrl());
     });
+  }
+
+  private void subscribeToReplies() {
+    eventuateSubscriptionProperties.getReply().keySet().forEach(subscriberId -> {
+      ReplySubscriptionData replySubscriptionData = eventuateSubscriptionProperties.getReply().get(subscriberId);
+
+      subscriptionService.subscribeToReply(subscriberId,
+              replySubscriptionData.getReplyChannel(),
+              Optional.ofNullable(replySubscriptionData.getResource()),
+              stringToSet(replySubscriptionData.getCommands()),
+              replySubscriptionData.getBaseUrl());
+    });
+  }
+
+  private Set<String> stringToSet(String value) {
+    return Arrays.stream(value.split(",")).collect(Collectors.toSet());
   }
 }
