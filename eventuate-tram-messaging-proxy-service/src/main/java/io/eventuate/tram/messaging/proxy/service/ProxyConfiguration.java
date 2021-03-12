@@ -4,10 +4,8 @@ import io.eventuate.common.spring.jdbc.EventuateCommonJdbcOperationsConfiguratio
 import io.eventuate.tram.consumer.common.MessageConsumerImplementation;
 import io.eventuate.tram.messaging.common.ChannelMapping;
 import io.eventuate.tram.messaging.common.DefaultChannelMapping;
-import io.eventuate.tram.messaging.producer.MessageProducer;
 import io.eventuate.tram.spring.consumer.jdbc.TramConsumerJdbcAutoConfiguration;
 import io.eventuate.tram.spring.consumer.kafka.EventuateTramKafkaMessageConsumerConfiguration;
-import io.eventuate.tram.spring.messaging.producer.jdbc.TramMessageProducerJdbcConfiguration;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -23,8 +21,7 @@ import org.springframework.web.client.RestTemplate;
 @Configuration
 @Import({TramConsumerJdbcAutoConfiguration.class,
         EventuateTramKafkaMessageConsumerConfiguration.class,
-        EventuateCommonJdbcOperationsConfiguration.class,
-        TramMessageProducerJdbcConfiguration.class})
+        EventuateCommonJdbcOperationsConfiguration.class})
 public class ProxyConfiguration {
 
   @Bean
@@ -66,14 +63,12 @@ public class ProxyConfiguration {
   public SubscriptionService subscriptionService(SubscriptionPersistenceService subscriptionPersistenceService,
                                                  SubscriptionRequestManager subscriptionRequestManager,
                                                  RestTemplate restTemplate,
-                                                 MessageConsumerImplementation messageConsumerImplementation,
-                                                 MessageProducer messageProducer) {
+                                                 MessageConsumerImplementation messageConsumerImplementation) {
 
     return new SubscriptionService(subscriptionPersistenceService,
             subscriptionRequestManager,
             restTemplate,
-            new SynchronizedMessageConsumerImplementation(messageConsumerImplementation),
-            messageProducer);
+            new SynchronizedMessageConsumerImplementation(messageConsumerImplementation));
   }
 
   @Bean

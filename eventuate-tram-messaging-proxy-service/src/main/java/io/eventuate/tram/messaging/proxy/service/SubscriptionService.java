@@ -12,7 +12,6 @@ import io.eventuate.tram.events.common.EventMessageHeaders;
 import io.eventuate.tram.messaging.common.Message;
 import io.eventuate.tram.messaging.consumer.MessageSubscription;
 import io.eventuate.tram.messaging.producer.MessageBuilder;
-import io.eventuate.tram.messaging.producer.MessageProducer;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -32,18 +31,15 @@ public class SubscriptionService {
   private SubscriptionRequestManager subscriptionRequestManager;
   private RestTemplate restTemplate;
   private MessageConsumerImplementation messageConsumerImplementation;
-  private MessageProducer messageProducer;
 
   public SubscriptionService(SubscriptionPersistenceService subscriptionPersistenceService,
                              SubscriptionRequestManager subscriptionRequestManager,
                              RestTemplate restTemplate,
-                             MessageConsumerImplementation messageConsumerImplementation,
-                             MessageProducer messageProducer) {
+                             MessageConsumerImplementation messageConsumerImplementation) {
     this.subscriptionPersistenceService = subscriptionPersistenceService;
     this.subscriptionRequestManager = subscriptionRequestManager;
     this.restTemplate = restTemplate;
     this.messageConsumerImplementation = messageConsumerImplementation;
-    this.messageProducer = messageProducer;
   }
 
   private ConcurrentMap<String, MessageSubscription> messageSubscriptions = new ConcurrentHashMap<>();
@@ -232,21 +228,6 @@ public class SubscriptionService {
     }
 
     return true;
-  }
-
-  public void sendReply(String reply,
-                        CommandReplyOutcome outcome,
-                        String replyType,
-                        Map<String, String> headers,
-                        String destination) {
-    Message message = MessageBuilder
-            .withPayload(reply)
-            .withHeader(ReplyMessageHeaders.REPLY_OUTCOME, outcome.name())
-            .withHeader(ReplyMessageHeaders.REPLY_TYPE, replyType)
-            .withExtraHeaders("", headers)
-            .build();
-
-    messageProducer.send(destination, message);
   }
 
   private Map<String, String> correlationHeaders(Map<String, String> headers) {

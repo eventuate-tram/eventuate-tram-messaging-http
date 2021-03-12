@@ -2,7 +2,12 @@ package io.eventuate.tram.messaging.proxy.consumer;
 
 import io.eventuate.common.json.mapper.JSonMapper;
 import io.eventuate.tram.commands.common.CommandReplyOutcome;
+import io.eventuate.tram.commands.common.ReplyMessageHeaders;
 import io.eventuate.tram.consumer.http.common.HttpMessage;
+import io.eventuate.tram.messaging.common.Message;
+import io.eventuate.tram.messaging.producer.MessageBuilder;
+import io.eventuate.tram.messaging.producer.MessageProducer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -23,6 +28,9 @@ public class TestController {
 
   @Value("${eventuate.http.proxy.base.url}")
   private String proxyBaseUrl;
+
+  @Autowired
+  private MessageProducer messageProducer;
 
   private RestTemplate restTemplate = new RestTemplate();
 
@@ -82,15 +90,13 @@ public class TestController {
   }
 
   private void publishReply(Object reply, CommandReplyOutcome outcome, String replyHeaders, String replyChannel) {
-    String location = String.format("%s/reply/%s/%s/%s",
-            proxyBaseUrl,
-            replyChannel,
-            reply.getClass().getName(),
-            outcome);
+    Message message = MessageBuilder
+            .withPayload(JSonMapper.toJson(reply))
+            .withHeader(ReplyMessageHeaders.REPLY_OUTCOME, outcome.name())
+            .withHeader(ReplyMessageHeaders.REPLY_TYPE, reply.getClass().getName())
+            .withExtraHeaders("", JSonMapper.fromJson(replyHeaders, Map.class))
+            .build();
 
-    HttpHeaders httpHeaders = new HttpHeaders();
-    httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-    httpHeaders.add("EVENTUATE_COMMAND_REPLY_HEADERS", replyHeaders);
-    restTemplate.postForLocation(location, new HttpEntity<>(reply, httpHeaders));
+    messageProducer.send(replyChannel, message);
   }
 }

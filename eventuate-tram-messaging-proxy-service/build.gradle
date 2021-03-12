@@ -10,7 +10,6 @@ dependencies {
     compile "io.eventuate.tram.core:eventuate-tram-spring-consumer-kafka:$eventuateTramVersion"
     compile "io.eventuate.tram.core:eventuate-tram-events:$eventuateTramVersion"
     compile "io.eventuate.tram.core:eventuate-tram-commands:$eventuateTramVersion"
-    compile "io.eventuate.tram.core:eventuate-tram-spring-producer-jdbc:$eventuateTramVersion"
 
     compile "org.springframework.boot:spring-boot-starter"
     compile "org.springframework.boot:spring-boot-starter-actuator"
@@ -22,6 +21,7 @@ dependencies {
     testCompile "org.springframework.boot:spring-boot-starter-test"
     testCompile "io.eventuate.util:eventuate-util-test:$eventuateUtilVersion"
 
+    testCompile "io.eventuate.tram.core:eventuate-tram-spring-producer-jdbc:$eventuateTramVersion"
     testCompile "io.eventuate.tram.core:eventuate-tram-spring-events-publisher:$eventuateTramVersion"
     testCompile "io.eventuate.tram.core:eventuate-tram-spring-commands:$eventuateTramVersion"
 }
