@@ -21,7 +21,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Import;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Collections;
@@ -44,6 +46,7 @@ public class EventuateHttpMessageSubscriberTest {
           TramCommandProducerConfiguration.class})
   @EnableAutoConfiguration
   @ComponentScan
+  @EnableAspectJAutoProxy
   public static class Config {
     @Bean
     public SubscriptionController subscriptionController() {
@@ -63,32 +66,38 @@ public class EventuateHttpMessageSubscriberTest {
   @Autowired
   private CommandProducer commandProducer;
 
+  @Autowired
+  private JdbcTemplate jdbcTemplate;
+
   private String messageChannel = "test-channel";
   private String commandChannel = "test-command-channel";
   private String commandReplyChannel = "test-reply-channel";
   private String commandResource;
 
-  private String commandId;
+  private String aggregateId;
 
-  private String id;
+  private String messageId;
   private String payload;
 
   @Before
   public void init() {
     payload = generateId();
     commandResource = generateId();
+    aggregateId = generateId();
   }
 
   @Test
   public void testMessageHandled() throws InterruptedException {
     sendMessage();
     assertMessage();
+    assertMessageCheckedForDuplicate(messageId);
   }
 
   @Test
   public void testEventHandled() throws InterruptedException {
     sendEvent();
     assertEvent();
+    assertMessageCheckedForDuplicate(messageId);
   }
 
   @Test
@@ -96,10 +105,11 @@ public class EventuateHttpMessageSubscriberTest {
     sendCommand();
     assertCommand();
     assertReply();
+    assertMessageCheckedForDuplicate(messageId);
   }
 
   private void sendCommand() {
-    id = commandProducer.send(commandChannel,
+    messageId = commandProducer.send(commandChannel,
             String.format("/test-resource/%s", commandResource),
             new TestCommand(payload),
             commandReplyChannel,
@@ -110,7 +120,7 @@ public class EventuateHttpMessageSubscriberTest {
     TestCommandInfo testCommandInfo = testController.getReceivedCommands().poll(30, TimeUnit.SECONDS);
     assertNotNull(testCommandInfo);
     assertNotNull(testCommandInfo.getMessageId());
-    commandId = testCommandInfo.getMessageId();
+    messageId = testCommandInfo.getMessageId();
     assertEquals(payload, testCommandInfo.getTestCommand().getSomeImportantData());
     assertEquals(commandReplyChannel, testCommandInfo.getReplyChannel());
     assertEquals(commandResource, testCommandInfo.getValue());
@@ -121,7 +131,7 @@ public class EventuateHttpMessageSubscriberTest {
     assertEquals(commandChannel, headers.get("commandreply__destination"));
     assertEquals(commandReplyChannel, headers.get("commandreply_reply_to"));
     assertEquals(TestCommand.class.getName(), headers.get("commandreply_type"));
-    assertEquals(id, headers.get("reply_to_message_id"));
+    assertEquals(messageId, headers.get("reply_to_message_id"));
   }
 
   private void assertReply() throws InterruptedException {
@@ -129,23 +139,23 @@ public class EventuateHttpMessageSubscriberTest {
 
     assertNotNull(testReplyInfo);
     assertEquals(CommandReplyOutcome.SUCCESS, testReplyInfo.getOutcome());
-    assertEquals(String.format("reply to %s", commandId), testReplyInfo.getReply().getSomeImportantData());
-    assertEquals(commandId, testReplyInfo.getReplyToCommandId());
+    assertEquals(String.format("reply to %s", messageId), testReplyInfo.getReply().getSomeImportantData());
+    assertEquals(messageId, testReplyInfo.getReplyToCommandId());
     assertEquals(TestReply.class.getName(), testReplyInfo.getReplyType());
     assertEquals(commandResource, testReplyInfo.getResourceValue());
   }
 
   private void sendEvent() {
-    id = generateId();
-    domainEventPublisher.publish("TestAggregate", id, singletonList(new TestEvent(payload)));
+    domainEventPublisher.publish("TestAggregate", aggregateId, singletonList(new TestEvent(payload)));
   }
 
   private void assertEvent() throws InterruptedException {
     TestEventInfo testEventInfo = testController.getReceivedEvents().poll(30, TimeUnit.SECONDS);
     assertNotNull(testEventInfo);
-    assertNotNull(testEventInfo.getEventId());
+    messageId = testEventInfo.getEventId();
+    assertNotNull(messageId);
     assertEquals(payload, testEventInfo.getTestEvent().getSomeImportantData());
-    assertEquals(id, testEventInfo.getAggregateId());
+    assertEquals(aggregateId, testEventInfo.getAggregateId());
   }
 
   private void sendMessage() {
@@ -156,15 +166,19 @@ public class EventuateHttpMessageSubscriberTest {
 
     messageProducerImplementation.send(message);
 
-    id = message.getId();
+    messageId = message.getId();
   }
 
   private void assertMessage() throws InterruptedException {
     HttpMessage message = testController.getReceivedMessages().poll(30, TimeUnit.SECONDS);
     assertNotNull(message);
-    assertEquals(id, message.getId());
+    assertEquals(messageId, message.getId());
     assertEquals(payload, message.getPayload());
     assertEquals(messageChannel, message.getHeaders().get(Message.DESTINATION));
+  }
+
+  private void assertMessageCheckedForDuplicate(String id) {
+    assertEquals(1, jdbcTemplate.queryForList("select * from eventuate.received_messages where message_id = ?", id).size());
   }
 
   private String generateId() {
