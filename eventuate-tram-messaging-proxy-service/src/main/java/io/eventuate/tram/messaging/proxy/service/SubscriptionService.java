@@ -7,6 +7,7 @@ import io.eventuate.tram.commands.common.ReplyMessageHeaders;
 import io.eventuate.tram.commands.common.paths.ResourcePath;
 import io.eventuate.tram.commands.common.paths.ResourcePathPattern;
 import io.eventuate.tram.consumer.common.MessageConsumerImplementation;
+import io.eventuate.tram.consumer.http.common.EventuateHttpHeaders;
 import io.eventuate.tram.consumer.http.common.HttpMessage;
 import io.eventuate.tram.events.common.EventMessageHeaders;
 import io.eventuate.tram.messaging.common.Message;
@@ -140,7 +141,7 @@ public class SubscriptionService {
     messageSubscriptions.computeIfAbsent(subscriptionInstanceId, instanceId -> {
       MessageSubscription messageSubscription = messageConsumerImplementation.subscribe(subscriberId,
               channels,
-              message -> publishMessage(message, callbackUrl, subscriptionInstanceId));
+              message -> publishMessage(message, callbackUrl, subscriberId, subscriptionInstanceId));
 
       return messageSubscription;
     });
@@ -150,10 +151,17 @@ public class SubscriptionService {
 
   private void publishMessage(Message message,
                               String callbackUrl,
+                              String subscriberId,
                               String subscriptionInstanceId) {
     String location = callbackUrl + "/" + subscriptionInstanceId;
 
-    restTemplate.postForLocation(location, new HttpMessage(message.getId(), message.getHeaders(), message.getPayload()));
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    addCommonHeaders(headers, subscriberId, message.getId());
+
+    HttpMessage httpMessage = new HttpMessage(message.getId(), message.getHeaders(), message.getPayload());
+
+    restTemplate.postForLocation(location, new HttpEntity<>(httpMessage, headers));
   }
 
   private void publishEvent(Message message,
@@ -178,6 +186,7 @@ public class SubscriptionService {
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
+    addCommonHeaders(headers, subscriberId, message.getId());
     restTemplate.postForLocation(location, new HttpEntity<>(message.getPayload(), headers));
   }
 
@@ -211,7 +220,8 @@ public class SubscriptionService {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     Map<String, String> correlationHeaders = correlationHeaders(message.getHeaders());
-    headers.add("EVENTUATE_COMMAND_REPLY_HEADERS", JSonMapper.toJson(correlationHeaders));
+    headers.add(EventuateHttpHeaders.COMMAND_REPLY_HEADERS, JSonMapper.toJson(correlationHeaders));
+    addCommonHeaders(headers, commandDispatcherId, message.getId());
     restTemplate.postForLocation(location, new HttpEntity<>(message.getPayload(), headers));
   }
 
@@ -260,5 +270,10 @@ public class SubscriptionService {
 
   private String generateId() {
     return UUID.randomUUID().toString();
+  }
+
+  private void addCommonHeaders(HttpHeaders headers, String subscriberId, String messageId) {
+    headers.add(EventuateHttpHeaders.SUBSCRIBER_ID, subscriberId);
+    headers.add(EventuateHttpHeaders.MESSAGE_ID, messageId);
   }
 }

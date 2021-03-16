@@ -4,6 +4,7 @@ import io.eventuate.tram.commands.common.CommandReplyOutcome;
 import io.eventuate.tram.commands.producer.CommandProducer;
 import io.eventuate.tram.consumer.http.common.HttpMessage;
 import io.eventuate.tram.events.publisher.DomainEventPublisher;
+import io.eventuate.tram.http.spring.consumer.duplicatedetection.IdempotentHandlerConfiguration;
 import io.eventuate.tram.messaging.common.Message;
 import io.eventuate.tram.messaging.producer.MessageBuilder;
 import io.eventuate.tram.messaging.producer.common.MessageProducerImplementation;
@@ -12,6 +13,7 @@ import io.eventuate.tram.messaging.proxy.service.SubscriptionController;
 import io.eventuate.tram.spring.commands.producer.TramCommandProducerConfiguration;
 import io.eventuate.tram.spring.events.publisher.TramEventsPublisherConfiguration;
 import io.eventuate.tram.spring.messaging.producer.jdbc.TramMessageProducerJdbcConfiguration;
+import io.eventuate.util.test.async.Eventually;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,7 +45,8 @@ public class EventuateHttpMessageSubscriberTest {
           EventuateMessageSubscriberConfiguration.class,
           TramMessageProducerJdbcConfiguration.class,
           TramEventsPublisherConfiguration.class,
-          TramCommandProducerConfiguration.class})
+          TramCommandProducerConfiguration.class,
+          IdempotentHandlerConfiguration.class})
   @EnableAutoConfiguration
   @ComponentScan
   @EnableAspectJAutoProxy
@@ -178,7 +181,8 @@ public class EventuateHttpMessageSubscriberTest {
   }
 
   private void assertMessageCheckedForDuplicate(String id) {
-    assertEquals(1, jdbcTemplate.queryForList("select * from eventuate.received_messages where message_id = ?", id).size());
+    Eventually.eventually(() ->
+      assertEquals(1, jdbcTemplate.queryForList("select * from eventuate.received_messages where message_id = ?", id).size()));
   }
 
   private String generateId() {

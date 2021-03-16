@@ -3,11 +3,12 @@ package io.eventuate.tram.messaging.proxy.consumer;
 import io.eventuate.common.json.mapper.JSonMapper;
 import io.eventuate.tram.commands.common.CommandReplyOutcome;
 import io.eventuate.tram.commands.common.ReplyMessageHeaders;
+import io.eventuate.tram.consumer.http.common.EventuateHttpHeaders;
 import io.eventuate.tram.consumer.http.common.HttpMessage;
 import io.eventuate.tram.messaging.common.Message;
 import io.eventuate.tram.messaging.producer.MessageBuilder;
 import io.eventuate.tram.messaging.producer.MessageProducer;
-import io.eventuate.tram.messaging.proxy.consumer.duplicatedetection.CheckDuplicatePublishing;
+import io.eventuate.tram.http.spring.consumer.duplicatedetection.IdempotentHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -47,23 +48,23 @@ public class TestController {
   }
 
   @PostMapping(path = "/messages/s3")
-  @CheckDuplicatePublishing("s3")
+  @IdempotentHandler
   public void handleMessages(@RequestBody HttpMessage httpMessage) {
     receivedMessages.add(httpMessage);
   }
 
   @PostMapping(path = "/events/s4/TestAggregate/{aggregateId}/io.eventuate.tram.messaging.proxy.consumer.TestEvent/{eventId}")
-  @CheckDuplicatePublishing("s4")
+  @IdempotentHandler
   public void handleEvent(@PathVariable String aggregateId, @PathVariable String eventId, @RequestBody TestEvent testEvent) {
     receivedEvents.add(new TestEventInfo(testEvent, aggregateId, eventId));
   }
 
   @PostMapping(path = "/commands/d1/{messageId}/io.eventuate.tram.messaging.proxy.consumer.TestCommand/{replyChannel}/test-resource/{value}")
-  @CheckDuplicatePublishing("d1")
+  @IdempotentHandler
   public void handleCommand(@PathVariable String messageId,
                             @PathVariable String replyChannel,
                             @PathVariable String value,
-                            @RequestHeader("EVENTUATE_COMMAND_REPLY_HEADERS") String headers,
+                            @RequestHeader(EventuateHttpHeaders.COMMAND_REPLY_HEADERS) String headers,
                             @RequestBody TestCommand testCommand) {
     receivedCommands.add(new TestCommandInfo(JSonMapper.fromJson(headers, Map.class), testCommand, messageId, replyChannel, value));
 
