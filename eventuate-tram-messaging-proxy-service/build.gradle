@@ -30,6 +30,8 @@ dependencies {
     testCompile "io.eventuate.tram.core:eventuate-tram-spring-commands:$eventuateTramVersion"
 }
 
+publish.dependsOn(tasks.findByName('bootRepackage') == null ? tasks['bootJar'] : tasks['bootRepackage'])
+
 test {
     forkEvery 1
 }
