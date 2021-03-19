@@ -176,11 +176,12 @@ public class HttpConsumerTest {
   private void sendMessage() {
     Message message = MessageBuilder
             .withPayload(payload)
-            .withHeader(Message.ID, id)
             .withHeader(Message.DESTINATION, channel)
             .build();
 
     messageProducerImplementation.send(message);
+
+    id = message.getId();
   }
 
   private String generateId() {

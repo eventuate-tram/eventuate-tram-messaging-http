@@ -15,7 +15,10 @@ public class SubscriptionInfo {
   public SubscriptionInfo() {
   }
 
-  public SubscriptionInfo(String subscriptionInstanceId, String subscriberId, Set<String> channels, String callbackUrl) {
+  public SubscriptionInfo(String subscriptionInstanceId,
+                          String subscriberId,
+                          Set<String> channels,
+                          String callbackUrl) {
     this.subscriptionInstanceId = subscriptionInstanceId;
     this.subscriberId = subscriberId;
     this.channels = channels;
@@ -53,6 +56,7 @@ public class SubscriptionInfo {
   public void setCallbackUrl(String callbackUrl) {
     this.callbackUrl = callbackUrl;
   }
+
 
   @Override
   public boolean equals(Object o) {

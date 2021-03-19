@@ -2,40 +2,27 @@ buildscript {
     repositories {
         jcenter()
         mavenCentral()
+        eventuateMavenRepoUrl.split(',').each { repoUrl -> maven { url repoUrl } }
     }
     dependencies {
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
         classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
         classpath "com.avast.gradle:gradle-docker-compose-plugin:0.9.2"
+        classpath "io.eventuate.plugins.gradle:eventuate-plugins-gradle-publish:$eventuatePluginsGradleVersion"
     }
 }
 
 apply plugin: 'docker-compose'
+apply plugin: "io.eventuate.plugins.gradle.publish.EventuatePublish"
+apply plugin: "io.eventuate.plugins.gradle.publish.EventuatePublishDockerImages"
 
 allprojects {
     group = "io.eventuate.messaging.http"
 }
 
 subprojects {
-
-    apply plugin: "java"
-    apply plugin: 'maven'
-    apply plugin: 'com.jfrog.bintray'
-
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
-
-    bintray {
-        user = System.getenv('BINTRAY_USER')
-        key = System.getenv('BINTRAY_KEY')
-        configurations = ['archives']
-        pkg {
-            repo = "eventuate-maven-$bintrayRepoType"
-            name = 'eventuate-tram-messaging-http'
-            licenses = ['Apache-2.0']
-            vcsUrl = 'https://github.com/eventuate-tram/eventuate-tram-messaging-http'
-        }
-    }
 
     repositories {
         mavenCentral()
@@ -45,35 +32,6 @@ subprojects {
         }
         eventuateMavenRepoUrl.split(',').each { repoUrl -> maven { url repoUrl } }
     }
-
-    configurations {
-        deployerJars
-    }
-
-    dependencies {
-        deployerJars 'org.springframework.build:aws-maven:5.0.0.RELEASE'
-    }
-
-    uploadArchives {
-        repositories {
-            mavenDeployer {
-                configuration = configurations.deployerJars
-                repository(url: deployUrl) {
-                    authentication(userName: System.getenv('S3_REPO_AWS_ACCESS_KEY'), password: System.getenv('S3_REPO_AWS_SECRET_ACCESS_KEY'))
-                }
-                pom.project {
-                    licenses {
-                        license {
-                            name 'The Apache Software License, Version 2.0'
-                            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                            distribution 'repo'
-                        }
-                    }
-                }
-            }
-        }
-    }
-
 }
 
 dockerCompose {
@@ -81,7 +39,14 @@ dockerCompose {
     environment.put "EVENTUATE_CDC_VERSION", eventuateCdcImageVersion
     environment.put "PROXY_SERVICE_VERSION", version
 
+    environment.put "DOCKER_IMAGE_TAG", dockerImageTag
+
     mysqlbinlog {
+        projectName = null
+        useComposeFiles = ["docker-compose-mysql-binlog.yml"]
+    }
+
+    publish {
         projectName = null
         useComposeFiles = ["docker-compose-mysql-binlog.yml"]
     }

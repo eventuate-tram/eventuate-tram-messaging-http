@@ -13,7 +13,10 @@ public class SubscribeRequest {
   public SubscribeRequest() {
   }
 
-  public SubscribeRequest(String subscriberId, Set<String> channels, String callbackUrl) {
+  public SubscribeRequest(String subscriberId,
+                          Set<String> channels,
+                          String callbackUrl) {
+
     this.subscriberId = subscriberId;
     this.channels = channels;
     this.callbackUrl = callbackUrl;

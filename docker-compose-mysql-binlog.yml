@@ -32,7 +32,7 @@ services:
 
   proxy:
     build: ./eventuate-tram-messaging-proxy-service
-    image: eventuateio/eventuate-tram-http-proxy-service:$PROXY_SERVICE_VERSION
+    image: eventuateio/eventuate-tram-http-proxy-service:$DOCKER_IMAGE_TAG
     ports:
       - "8098:8080"
     depends_on:
@@ -40,7 +40,7 @@ services:
       - kafka
       - zookeeper
     environment:
-      EVENTUATELOCAL_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      EVENTUATELOCAL_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       EVENTUATE_HTTP_PROXY_ZOOKEEPER_CONNECTION_STRING: zookeeper:2181
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql/eventuate
       SPRING_DATASOURCE_USERNAME: mysqluser
@@ -50,7 +50,6 @@ services:
 
   proxy-follower:
     build: ./eventuate-tram-messaging-proxy-service
-    image: eventuateio/eventuate-tram-http-proxy-service:$PROXY_SERVICE_VERSION
     ports:
       - "8097:8080"
     depends_on:
@@ -58,14 +57,14 @@ services:
       - kafka
       - zookeeper
     environment:
-      EVENTUATELOCAL_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      EVENTUATELOCAL_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       EVENTUATE_HTTP_PROXY_ZOOKEEPER_CONNECTION_STRING: zookeeper:2181
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql/eventuate
       SPRING_DATASOURCE_USERNAME: mysqluser
       SPRING_DATASOURCE_PASSWORD: mysqlpw
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.jdbc.Driver
 
-  cdcservice:
+  cdc-service:
     image: eventuateio/eventuate-cdc-service:$EVENTUATE_CDC_VERSION
     ports:
       - "8099:8080"
@@ -78,7 +77,7 @@ services:
       SPRING_DATASOURCE_USERNAME: mysqluser
       SPRING_DATASOURCE_PASSWORD: mysqlpw
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.jdbc.Driver
-      EVENTUATELOCAL_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      EVENTUATELOCAL_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       EVENTUATELOCAL_ZOOKEEPER_CONNECTION_STRING: zookeeper:2181
       EVENTUATELOCAL_CDC_DB_USER_NAME: root
       EVENTUATELOCAL_CDC_DB_PASSWORD: rootpassword
@@ -86,3 +85,4 @@ services:
       EVENTUATELOCAL_CDC_OFFSET_STORE_KEY: MySqlBinlog
       EVENTUATELOCAL_CDC_MYSQL_BINLOG_CLIENT_UNIQUE_ID: 1234567890
       EVENTUATELOCAL_CDC_READ_OLD_DEBEZIUM_DB_OFFSET_STORAGE_TOPIC: "false"
+      EVENTUATE_OUTBOX_ID: 1

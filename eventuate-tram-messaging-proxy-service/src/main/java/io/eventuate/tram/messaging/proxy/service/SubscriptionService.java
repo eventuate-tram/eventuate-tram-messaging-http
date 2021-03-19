@@ -1,15 +1,31 @@
 package io.eventuate.tram.messaging.proxy.service;
 
+import io.eventuate.common.json.mapper.JSonMapper;
+import io.eventuate.tram.commands.common.CommandMessageHeaders;
+import io.eventuate.tram.commands.common.CommandReplyOutcome;
+import io.eventuate.tram.commands.common.ReplyMessageHeaders;
+import io.eventuate.tram.commands.common.paths.ResourcePath;
+import io.eventuate.tram.commands.common.paths.ResourcePathPattern;
 import io.eventuate.tram.consumer.common.MessageConsumerImplementation;
+import io.eventuate.tram.consumer.http.common.EventuateHttpHeaders;
 import io.eventuate.tram.consumer.http.common.HttpMessage;
+import io.eventuate.tram.events.common.EventMessageHeaders;
+import io.eventuate.tram.messaging.common.Message;
 import io.eventuate.tram.messaging.consumer.MessageSubscription;
+import io.eventuate.tram.messaging.producer.MessageBuilder;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 public class SubscriptionService {
   private SubscriptionPersistenceService subscriptionPersistenceService;
@@ -30,37 +46,208 @@ public class SubscriptionService {
   private ConcurrentMap<String, MessageSubscription> messageSubscriptions = new ConcurrentHashMap<>();
 
   public String makeSubscriptionRequest(String subscriberId,
-                          Set<String> channels,
-                          String callbackUrl,
-                          Optional<String> optionalSubscriptionInstanceId) {
+                                        Set<String> channels,
+                                        String callbackUrl) {
 
-    String subscriptionInstanceId = optionalSubscriptionInstanceId.orElseGet(this::generateId);
+    String subscriptionInstanceId = generateId();
 
-    subscriptionRequestManager.createSubscriptionRequest(new SubscriptionInfo(subscriptionInstanceId, subscriberId, channels, callbackUrl));
+    subscriptionRequestManager.createSubscriptionRequest(new SubscriptionInfo(subscriptionInstanceId,
+            subscriberId, channels, callbackUrl));
+
     subscriptionPersistenceService.saveSubscriptionInfo(new SubscriptionInfo(subscriptionInstanceId,
             subscriberId, channels, callbackUrl));
 
     return subscriptionInstanceId;
   }
 
-  public String subscribe(String subscriberId,
-                          Set<String> channels,
-                          String callbackUrl,
-                          Optional<String> optionalSubscriptionInstanceId) {
+  public void subscribeToReply(String subscriberId,
+                               String replyChannel,
+                               Optional<String> resource,
+                               Set<String> commands,
+                               String callbackUrl) {
+    messageSubscriptions.computeIfAbsent(subscriberId, instanceId -> {
+      MessageSubscription messageSubscription = messageConsumerImplementation.subscribe(subscriberId,
+              Collections.singleton(replyChannel),
+              message -> publishReply(message, callbackUrl, subscriberId, commands, resource));
 
-    String subscriptionInstanceId = optionalSubscriptionInstanceId.orElseGet(this::generateId);
+      return messageSubscription;
+    });
+  }
 
+  private void publishReply(Message message,
+                            String callbackUrl,
+                            String subscriberId,
+                            Set<String> commands,
+                            Optional<String> resource) {
+    String command = message.getRequiredHeader(CommandMessageHeaders.inReply(CommandMessageHeaders.COMMAND_TYPE));
+
+    if (!commands.contains(command)) {
+      return;
+    }
+
+    if (!shouldPublishResource(resource, message.getHeader(CommandMessageHeaders.inReply(CommandMessageHeaders.RESOURCE)))) {
+      return;
+    }
+
+    String location = String.format("%s/%s/%s/%s/%s/%s%s",
+            callbackUrl,
+            subscriberId,
+            command,
+            message.getRequiredHeader(ReplyMessageHeaders.IN_REPLY_TO),
+            message.getRequiredHeader(ReplyMessageHeaders.REPLY_TYPE),
+            message.getRequiredHeader(ReplyMessageHeaders.REPLY_OUTCOME),
+            message.getHeader(CommandMessageHeaders.inReply(CommandMessageHeaders.RESOURCE)).orElse(""));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    restTemplate.postForLocation(location, new HttpEntity<>(message.getPayload(), headers));
+  }
+
+  public String subscribeToCommand(String commandDispatcherId,
+                                   String channel,
+                                   Optional<String> resource,
+                                   Set<String> commands,
+                                   String callbackUrl) {
+    messageSubscriptions.computeIfAbsent(commandDispatcherId, instanceId -> {
+      MessageSubscription messageSubscription = messageConsumerImplementation.subscribe(commandDispatcherId,
+              Collections.singleton(channel),
+              message -> publishCommand(message, commandDispatcherId, resource, commands, callbackUrl));
+
+      return messageSubscription;
+    });
+
+    return commandDispatcherId;
+  }
+
+  public String subscribeToEvent(String subscriberId,
+                                 String aggregate,
+                                 Set<String> events,
+                                 String callbackUrl) {
+    messageSubscriptions.computeIfAbsent(subscriberId, instanceId -> {
+      MessageSubscription messageSubscription = messageConsumerImplementation.subscribe(subscriberId,
+              Collections.singleton(aggregate),
+              message -> publishEvent(message, aggregate, events, callbackUrl, subscriberId));
+
+      return messageSubscription;
+    });
+
+    return subscriberId;
+  }
+
+  public String subscribeToMessage(String subscriberId,
+                                   Set<String> channels,
+                                   String callbackUrl,
+                                   String subscriptionInstanceId) {
     messageSubscriptions.computeIfAbsent(subscriptionInstanceId, instanceId -> {
       MessageSubscription messageSubscription = messageConsumerImplementation.subscribe(subscriberId,
               channels,
-              message ->
-                restTemplate.postForLocation(callbackUrl + "/" + subscriptionInstanceId,
-                        new HttpMessage(message.getId(), message.getHeaders(), message.getPayload())));
+              message -> publishMessage(message, callbackUrl, subscriberId, subscriptionInstanceId));
 
       return messageSubscription;
     });
 
     return subscriptionInstanceId;
+  }
+
+  private void publishMessage(Message message,
+                              String callbackUrl,
+                              String subscriberId,
+                              String subscriptionInstanceId) {
+    String location = callbackUrl + "/" + subscriptionInstanceId;
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    addCommonHeaders(headers, subscriberId, message.getId());
+
+    HttpMessage httpMessage = new HttpMessage(message.getId(), message.getHeaders(), message.getPayload());
+
+    restTemplate.postForLocation(location, new HttpEntity<>(httpMessage, headers));
+  }
+
+  private void publishEvent(Message message,
+                            String aggregate,
+                            Set<String> events,
+                            String callbackUrl,
+                            String subscriberId) {
+
+    String event = message.getRequiredHeader(EventMessageHeaders.EVENT_TYPE);
+
+    if (!events.contains(event)) {
+      return;
+    }
+
+    String location = String.format("%s/%s/%s/%s/%s/%s",
+            callbackUrl,
+            subscriberId,
+            aggregate,
+            message.getRequiredHeader(EventMessageHeaders.AGGREGATE_ID),
+            event,
+            message.getRequiredHeader(Message.ID));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    addCommonHeaders(headers, subscriberId, message.getId());
+    restTemplate.postForLocation(location, new HttpEntity<>(message.getPayload(), headers));
+  }
+
+  private void publishCommand(Message message,
+                              String commandDispatcherId,
+                              Optional<String> resource,
+                              Set<String> commands,
+                              String callbackUrl) {
+
+    String command = message.getRequiredHeader(CommandMessageHeaders.COMMAND_TYPE);
+
+    if (!commands.contains(command)) {
+      return;
+    }
+
+    if (!shouldPublishResource(resource, message.getHeader(CommandMessageHeaders.RESOURCE))) {
+      return;
+    }
+
+    String replyChannel = message.getRequiredHeader(CommandMessageHeaders.REPLY_TO);
+
+    String location =
+            String.format("%s/%s/%s/%s/%s%s",
+                    callbackUrl,
+                    commandDispatcherId,
+                    message.getId(),
+                    command,
+                    replyChannel,
+                    resource.isPresent() ? message.getRequiredHeader(CommandMessageHeaders.RESOURCE) : "");
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    Map<String, String> correlationHeaders = correlationHeaders(message.getHeaders());
+    headers.add(EventuateHttpHeaders.COMMAND_REPLY_HEADERS, JSonMapper.toJson(correlationHeaders));
+    addCommonHeaders(headers, commandDispatcherId, message.getId());
+    restTemplate.postForLocation(location, new HttpEntity<>(message.getPayload(), headers));
+  }
+
+  private boolean shouldPublishResource(Optional<String> resource, Optional<String> messageResource) {
+    if (resource.isPresent()) {
+      return messageResource
+              .map(mr -> {
+                ResourcePathPattern resourcePathPattern = ResourcePathPattern.parse(resource.get());
+                ResourcePath resourcePath = ResourcePath.parse(mr);
+                return resourcePathPattern.isSatisfiedBy(resourcePath);
+              })
+              .orElse(false);
+
+    }
+
+    return true;
+  }
+
+  private Map<String, String> correlationHeaders(Map<String, String> headers) {
+    Map<String, String> m = headers.entrySet()
+            .stream()
+            .filter(e -> e.getKey().startsWith(CommandMessageHeaders.COMMAND_HEADER_PREFIX))
+            .collect(Collectors.toMap(e -> CommandMessageHeaders.inReply(e.getKey()),
+                    Map.Entry::getValue));
+    m.put(ReplyMessageHeaders.IN_REPLY_TO, headers.get(Message.ID));
+    return m;
   }
 
   public void updateSubscription(String subscriptionInstanceId) {
@@ -83,5 +270,10 @@ public class SubscriptionService {
 
   private String generateId() {
     return UUID.randomUUID().toString();
+  }
+
+  private void addCommonHeaders(HttpHeaders headers, String subscriberId, String messageId) {
+    headers.add(EventuateHttpHeaders.SUBSCRIBER_ID, subscriberId);
+    headers.add(EventuateHttpHeaders.MESSAGE_ID, messageId);
   }
 }

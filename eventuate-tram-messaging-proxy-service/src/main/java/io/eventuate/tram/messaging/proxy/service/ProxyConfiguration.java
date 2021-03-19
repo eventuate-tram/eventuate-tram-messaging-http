@@ -19,7 +19,9 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.web.client.RestTemplate;
 
 @Configuration
-@Import({TramConsumerJdbcAutoConfiguration.class, EventuateTramKafkaMessageConsumerConfiguration.class, EventuateCommonJdbcOperationsConfiguration.class})
+@Import({TramConsumerJdbcAutoConfiguration.class,
+        EventuateTramKafkaMessageConsumerConfiguration.class,
+        EventuateCommonJdbcOperationsConfiguration.class})
 public class ProxyConfiguration {
 
   @Bean
@@ -61,10 +63,12 @@ public class ProxyConfiguration {
   public SubscriptionService subscriptionService(SubscriptionPersistenceService subscriptionPersistenceService,
                                                  SubscriptionRequestManager subscriptionRequestManager,
                                                  RestTemplate restTemplate,
-                                                 MessageConsumerImplementation messageConsumerImplementation,
-                                                 ProxyProperties proxyProperties) {
+                                                 MessageConsumerImplementation messageConsumerImplementation) {
 
-    return new SubscriptionService(subscriptionPersistenceService, subscriptionRequestManager, restTemplate, new SynchronizedMessageConsumerImplementation(messageConsumerImplementation));
+    return new SubscriptionService(subscriptionPersistenceService,
+            subscriptionRequestManager,
+            restTemplate,
+            new SynchronizedMessageConsumerImplementation(messageConsumerImplementation));
   }
 
   @Bean

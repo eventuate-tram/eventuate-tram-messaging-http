@@ -31,6 +31,7 @@ public class SubscriptionRequestManagerTest {
   @Before
   public void init() {
     subscriptionInfo = new SubscriptionInfo(generateId(), generateId(), Collections.singleton(generateId()), generateId());
+
     addedSubscription = new AtomicReference<>();
     removedSubscription = new AtomicReference<>();
 

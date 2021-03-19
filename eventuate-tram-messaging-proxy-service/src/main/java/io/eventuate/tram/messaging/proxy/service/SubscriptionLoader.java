@@ -1,7 +1,6 @@
 package io.eventuate.tram.messaging.proxy.service;
 
 import javax.annotation.PostConstruct;
-import java.util.Optional;
 
 public class SubscriptionLoader {
 
@@ -27,18 +26,18 @@ public class SubscriptionLoader {
     subscriptionPersistenceService
             .loadSubscriptionInfos()
             .forEach(subscriptionInfo ->
-                    subscriptionService.subscribe(subscriptionInfo.getSubscriberId(),
+                    subscriptionService.subscribeToMessage(subscriptionInfo.getSubscriberId(),
                             subscriptionInfo.getChannels(),
                             subscriptionInfo.getCallbackUrl(),
-                            Optional.of(subscriptionInfo.getSubscriptionInstanceId())));
+                            subscriptionInfo.getSubscriptionInstanceId()));
   }
 
   private void followToSubscriptions() {
     subscriptionRequestManager.subscribe(subscriptionInfo -> {
-      subscriptionService.subscribe(subscriptionInfo.getSubscriberId(),
+      subscriptionService.subscribeToMessage(subscriptionInfo.getSubscriberId(),
               subscriptionInfo.getChannels(),
               subscriptionInfo.getCallbackUrl(),
-              Optional.of(subscriptionInfo.getSubscriptionInstanceId()));
+              subscriptionInfo.getSubscriptionInstanceId());
     }, subscriptionInfo -> subscriptionService.unsubscribe(subscriptionInfo.getSubscriptionInstanceId()));
   }
 }
