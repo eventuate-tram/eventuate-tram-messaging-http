@@ -56,5 +56,7 @@ workflows:
     jobs:
       - build-and-test-all-mysql-binlog
       - deploy-artifacts:
+          context:
+            - publish
           requires:
             - build-and-test-all-mysql-binlog
