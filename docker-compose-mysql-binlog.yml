@@ -31,7 +31,10 @@ services:
       - MYSQL_PASSWORD=mysqlpw
 
   proxy:
-    build: ./eventuate-tram-messaging-proxy-service
+    build:
+      context: ./eventuate-tram-messaging-proxy-service/
+      args:
+        proxyServiceVersion: ${PROXY_SERVICE_VERSION}
     image: eventuateio/eventuate-tram-http-proxy-service:$DOCKER_IMAGE_TAG
     ports:
       - "8098:8080"
@@ -49,7 +52,10 @@ services:
       EVENTUATE_LOCAL_KAFKA_CONSUMER_PROPERTIES_SESSION_TIMEOUT_MS: 6000
 
   proxy-follower:
-    build: ./eventuate-tram-messaging-proxy-service
+    build:
+      context: ./eventuate-tram-messaging-proxy-service/
+      args:
+        proxyServiceVersion: ${PROXY_SERVICE_VERSION}
     ports:
       - "8097:8080"
     depends_on:
