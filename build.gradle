@@ -51,4 +51,4 @@ dockerCompose {
     }
 }
 
-publishComposeBuild.dependsOn("assemble")
+publishComposeBuild.dependsOn(":eventuate-tram-messaging-proxy-service:assemble")
