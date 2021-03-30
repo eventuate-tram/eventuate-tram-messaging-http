@@ -50,3 +50,5 @@ dockerCompose {
         useComposeFiles = ["docker-compose-mysql-binlog.yml"]
     }
 }
+
+publishComposeBuild.dependsOn("assemble")
