@@ -7,13 +7,13 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - eventuate-tram-messaging-http-{{ checksum "gradle.properties" }}
+            - eventuate-tram-messaging-http-{{ checksum "gradle.properties" }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
             - eventuate-tram-messaging-http-
       - run: TERM=dumb ./gradlew testClasses
       - save_cache:
           paths:
             - ~/.gradle
-          key: eventuate-tram-messaging-http-{{ checksum "gradle.properties" }}
+          key: eventuate-tram-messaging-http-{{ checksum "gradle.properties" }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
       - run:
           command: |
             . ./.circleci/setenv-circle-ci.sh
@@ -32,20 +32,6 @@ jobs:
           path: ~/junit
       - store_artifacts:
           path: ~/container-logs
-  deploy-artifacts:
-    machine: true
-    working_directory: ~/eventuate-tram-messaging-http
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - eventuate-tram-messaging-http-{{ checksum "gradle.properties" }}
-            - eventuate-tram-messaging-http-
-      - run: TERM=dumb ./gradlew testClasses
-      - save_cache:
-          paths:
-            - ~/.gradle
-          key: eventuate-tram-messaging-http-{{ checksum "gradle.properties" }}
       - run:
           name: Publish artifacts
           command: |
@@ -54,9 +40,6 @@ workflows:
   version: 2
   build-test-and-deploy:
     jobs:
-      - build-and-test-all-mysql-binlog
-      - deploy-artifacts:
+      - build-and-test-all-mysql-binlog:
           context:
             - publish
-          requires:
-            - build-and-test-all-mysql-binlog
