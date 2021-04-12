@@ -1,5 +1,6 @@
 package io.eventuate.tram.consumer.http;
 
+import io.eventuate.common.jdbc.EventuateTransactionTemplate;
 import io.eventuate.tram.consumer.common.MessageConsumerImplementation;
 import io.eventuate.tram.messaging.common.Message;
 import io.eventuate.tram.messaging.producer.MessageBuilder;
@@ -36,6 +37,9 @@ public class HttpConsumerTest {
 
   @Inject
   private EventuateTramHttpMessageController eventuateTramHttpMessageController;
+
+  @Inject
+  private EventuateTransactionTemplate eventuateTransactionTemplate;
 
   @Inject
   private ProxyClient proxyClient;
@@ -174,14 +178,18 @@ public class HttpConsumerTest {
   }
 
   private void sendMessage() {
-    Message message = MessageBuilder
-            .withPayload(payload)
-            .withHeader(Message.DESTINATION, channel)
-            .build();
+    eventuateTransactionTemplate.executeInTransaction(() -> {
+      Message message = MessageBuilder
+              .withPayload(payload)
+              .withHeader(Message.DESTINATION, channel)
+              .build();
 
-    messageProducerImplementation.send(message);
+      messageProducerImplementation.send(message);
 
-    id = message.getId();
+      id = message.getId();
+
+      return null;
+    });
   }
 
   private String generateId() {
