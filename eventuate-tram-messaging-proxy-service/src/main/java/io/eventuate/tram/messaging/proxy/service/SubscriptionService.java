@@ -13,6 +13,8 @@ import io.eventuate.tram.events.common.EventMessageHeaders;
 import io.eventuate.tram.messaging.common.Message;
 import io.eventuate.tram.messaging.consumer.MessageSubscription;
 import io.eventuate.tram.messaging.producer.MessageBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -28,6 +30,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
 public class SubscriptionService {
+  private Logger logger = LoggerFactory.getLogger(getClass());
+
   private SubscriptionPersistenceService subscriptionPersistenceService;
   private SubscriptionRequestManager subscriptionRequestManager;
   private RestTemplate restTemplate;
@@ -79,6 +83,8 @@ public class SubscriptionService {
                             String subscriberId,
                             Set<String> commands,
                             Optional<String> resource) {
+    logger.debug("publishing reply {}", message);
+
     String command = message.getRequiredHeader(CommandMessageHeaders.inReply(CommandMessageHeaders.COMMAND_TYPE));
 
     if (!commands.contains(command)) {
@@ -98,9 +104,13 @@ public class SubscriptionService {
             message.getRequiredHeader(ReplyMessageHeaders.REPLY_OUTCOME),
             message.getHeader(CommandMessageHeaders.inReply(CommandMessageHeaders.RESOURCE)).orElse(""));
 
+    logger.debug("sending reply {} to location {}", message, location);
+
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     restTemplate.postForLocation(location, new HttpEntity<>(message.getPayload(), headers));
+
+    logger.debug("sent reply {} to location {}", message, location);
   }
 
   public String subscribeToCommand(String commandDispatcherId,
@@ -155,6 +165,8 @@ public class SubscriptionService {
                               String subscriptionInstanceId) {
     String location = callbackUrl + "/" + subscriptionInstanceId;
 
+    logger.debug("sending message {} to location {}", message, location);
+
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     addCommonHeaders(headers, subscriberId, message.getId());
@@ -162,6 +174,8 @@ public class SubscriptionService {
     HttpMessage httpMessage = new HttpMessage(message.getId(), message.getHeaders(), message.getPayload());
 
     restTemplate.postForLocation(location, new HttpEntity<>(httpMessage, headers));
+
+    logger.debug("sent message {} to location {}", message, location);
   }
 
   private void publishEvent(Message message,
@@ -169,6 +183,8 @@ public class SubscriptionService {
                             Set<String> events,
                             String callbackUrl,
                             String subscriberId) {
+
+    logger.debug("publishing event {}", message);
 
     String event = message.getRequiredHeader(EventMessageHeaders.EVENT_TYPE);
 
@@ -184,10 +200,14 @@ public class SubscriptionService {
             event,
             message.getRequiredHeader(Message.ID));
 
+    logger.debug("sending event {} to location {}", message, location);
+
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     addCommonHeaders(headers, subscriberId, message.getId());
     restTemplate.postForLocation(location, new HttpEntity<>(message.getPayload(), headers));
+
+    logger.debug("sent event {} to location {}", message, location);
   }
 
   private void publishCommand(Message message,
@@ -195,6 +215,8 @@ public class SubscriptionService {
                               Optional<String> resource,
                               Set<String> commands,
                               String callbackUrl) {
+
+    logger.debug("publishing command {}", message);
 
     String command = message.getRequiredHeader(CommandMessageHeaders.COMMAND_TYPE);
 
@@ -217,12 +239,16 @@ public class SubscriptionService {
                     replyChannel,
                     resource.isPresent() ? message.getRequiredHeader(CommandMessageHeaders.RESOURCE) : "");
 
+    logger.debug("sending command {} to location {}", message, location);
+
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     Map<String, String> correlationHeaders = correlationHeaders(message.getHeaders());
     headers.add(EventuateHttpHeaders.COMMAND_REPLY_HEADERS, JSonMapper.toJson(correlationHeaders));
     addCommonHeaders(headers, commandDispatcherId, message.getId());
     restTemplate.postForLocation(location, new HttpEntity<>(message.getPayload(), headers));
+
+    logger.debug("sent command {} to location {}", message, location);
   }
 
   private boolean shouldPublishResource(Optional<String> resource, Optional<String> messageResource) {

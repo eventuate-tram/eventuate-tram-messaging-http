@@ -1,5 +1,7 @@
 package io.eventuate.tram.messaging.proxy.consumer;
 
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+
 public class CommandSubscriptionData {
   private String channel;
   private String resource;
@@ -36,5 +38,10 @@ public class CommandSubscriptionData {
 
   public void setCommands(String commands) {
     this.commands = commands;
+  }
+
+  @Override
+  public String toString() {
+    return ReflectionToStringBuilder.toString(this);
   }
 }

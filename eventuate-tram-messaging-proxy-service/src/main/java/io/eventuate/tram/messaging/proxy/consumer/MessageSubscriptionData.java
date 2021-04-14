@@ -1,5 +1,7 @@
 package io.eventuate.tram.messaging.proxy.consumer;
 
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+
 public class MessageSubscriptionData {
   private String channels;
   private String baseUrl;
@@ -18,5 +20,10 @@ public class MessageSubscriptionData {
 
   public void setBaseUrl(String baseUrl) {
     this.baseUrl = baseUrl;
+  }
+
+  @Override
+  public String toString() {
+    return ReflectionToStringBuilder.toString(this);
   }
 }
