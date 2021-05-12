@@ -1,10 +1,9 @@
 package io.eventuate.tram.messaging.proxy.service;
 
-import io.eventuate.common.spring.jdbc.EventuateCommonJdbcOperationsConfiguration;
 import io.eventuate.tram.consumer.common.MessageConsumerImplementation;
 import io.eventuate.tram.messaging.common.ChannelMapping;
 import io.eventuate.tram.messaging.common.DefaultChannelMapping;
-import io.eventuate.tram.spring.consumer.jdbc.TramConsumerJdbcAutoConfiguration;
+import io.eventuate.tram.spring.consumer.common.TramNoopDuplicateMessageDetectorConfiguration;
 import io.eventuate.tram.spring.consumer.kafka.EventuateTramKafkaMessageConsumerConfiguration;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -19,9 +18,8 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.web.client.RestTemplate;
 
 @Configuration
-@Import({TramConsumerJdbcAutoConfiguration.class,
-        EventuateTramKafkaMessageConsumerConfiguration.class,
-        EventuateCommonJdbcOperationsConfiguration.class})
+@Import({EventuateTramKafkaMessageConsumerConfiguration.class,
+        TramNoopDuplicateMessageDetectorConfiguration.class})
 public class ProxyConfiguration {
 
   @Bean

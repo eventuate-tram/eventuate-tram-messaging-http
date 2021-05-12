@@ -4,7 +4,6 @@ import io.eventuate.tram.commands.common.CommandReplyOutcome;
 import io.eventuate.tram.commands.producer.CommandProducer;
 import io.eventuate.tram.consumer.http.common.HttpMessage;
 import io.eventuate.tram.events.publisher.DomainEventPublisher;
-import io.eventuate.tram.http.spring.consumer.duplicatedetection.IdempotentHandlerConfiguration;
 import io.eventuate.tram.messaging.common.Message;
 import io.eventuate.tram.messaging.producer.MessageBuilder;
 import io.eventuate.tram.messaging.producer.common.MessageProducerImplementation;
@@ -13,7 +12,6 @@ import io.eventuate.tram.messaging.proxy.service.SubscriptionController;
 import io.eventuate.tram.spring.commands.producer.TramCommandProducerConfiguration;
 import io.eventuate.tram.spring.events.publisher.TramEventsPublisherConfiguration;
 import io.eventuate.tram.spring.messaging.producer.jdbc.TramMessageProducerJdbcConfiguration;
-import io.eventuate.util.test.async.Eventually;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,7 +23,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Import;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Collections;
@@ -45,8 +42,7 @@ public class EventuateHttpMessageSubscriberTest {
           EventuateMessageSubscriberConfiguration.class,
           TramMessageProducerJdbcConfiguration.class,
           TramEventsPublisherConfiguration.class,
-          TramCommandProducerConfiguration.class,
-          IdempotentHandlerConfiguration.class})
+          TramCommandProducerConfiguration.class})
   @EnableAutoConfiguration
   @ComponentScan
   @EnableAspectJAutoProxy
@@ -69,9 +65,6 @@ public class EventuateHttpMessageSubscriberTest {
   @Autowired
   private CommandProducer commandProducer;
 
-  @Autowired
-  private JdbcTemplate jdbcTemplate;
-
   private String messageChannel = "test-channel";
   private String commandChannel = "test-command-channel";
   private String commandReplyChannel = "test-reply-channel";
@@ -93,14 +86,12 @@ public class EventuateHttpMessageSubscriberTest {
   public void testMessageHandled() throws InterruptedException {
     sendMessage();
     assertMessage();
-    assertMessageCheckedForDuplicate(messageId);
   }
 
   @Test
   public void testEventHandled() throws InterruptedException {
     sendEvent();
     assertEvent();
-    assertMessageCheckedForDuplicate(messageId);
   }
 
   @Test
@@ -108,7 +99,6 @@ public class EventuateHttpMessageSubscriberTest {
     sendCommand();
     assertCommand();
     assertReply();
-    assertMessageCheckedForDuplicate(messageId);
   }
 
   private void sendCommand() {
@@ -178,11 +168,6 @@ public class EventuateHttpMessageSubscriberTest {
     assertEquals(messageId, message.getId());
     assertEquals(payload, message.getPayload());
     assertEquals(messageChannel, message.getHeaders().get(Message.DESTINATION));
-  }
-
-  private void assertMessageCheckedForDuplicate(String id) {
-    Eventually.eventually(() ->
-      assertEquals(1, jdbcTemplate.queryForList("select * from eventuate.received_messages where message_id = ?", id).size()));
   }
 
   private String generateId() {
