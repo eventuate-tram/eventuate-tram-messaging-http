@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
@@ -67,7 +68,7 @@ public class CustomerEventSubscriberTest {
   }
 
   private void assertEvents() {
-    Eventually.eventually(() -> {
+    Eventually.eventually(60, 500, TimeUnit.MILLISECONDS, () -> {
       assertEquals(3, customerEventController.getReceivedEvents().size());
 
       CustomerCreditReservedEvent customerCreditReservedEvent =
