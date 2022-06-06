@@ -40,12 +40,25 @@ dockerCompose {
     environment.put "EVENTUATE_COMMON_VERSION", eventuateCommonImageVersion
     environment.put "EVENTUATE_CDC_VERSION", eventuateCdcImageVersion
     environment.put "PROXY_SERVICE_VERSION", version
+    environment.put "EVENTUATE_MESSAGING_KAFKA_IMAGE_VERSION", eventuateMessagingKafkaImageVersion
 
     environment.put "DOCKER_IMAGE_TAG", dockerImageTag
 
     mysqlbinlog {
         projectName = null
         useComposeFiles = ["docker-compose-mysql-binlog.yml"]
+    }
+
+    proxyOnly {
+        projectName = null
+        useComposeFiles = ["docker-compose-mysql-binlog.yml"]
+        startedServices = ["proxy"]
+    }
+
+    proxiesOnly {
+        projectName = null
+        useComposeFiles = ["docker-compose-mysql-binlog.yml"]
+        startedServices = ["proxy", "proxy-follower"]
     }
 
     publish {

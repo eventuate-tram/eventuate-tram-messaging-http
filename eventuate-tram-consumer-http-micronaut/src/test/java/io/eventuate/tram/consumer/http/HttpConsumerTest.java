@@ -26,6 +26,9 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 @MicronautTest(transactional = false)
 public class HttpConsumerTest {
 
@@ -164,7 +167,8 @@ public class HttpConsumerTest {
     processBuilder.directory(new File(".."));
     processBuilder.command("sh", script);
     processBuilder.inheritIO();
-    processBuilder.start().waitFor();
+    int rc = processBuilder.start().waitFor();
+    assertEquals(0, rc);
   }
 
   private boolean isProxyAvailable() {
