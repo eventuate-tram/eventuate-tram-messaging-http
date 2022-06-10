@@ -1,3 +1,5 @@
+rootProject.name="eventuate-tram-messaging-http"
+
 include 'eventuate-tram-consumer-http-common'
 include 'eventuate-tram-messaging-proxy-service'
 include 'eventuate-tram-consumer-http-micronaut'
