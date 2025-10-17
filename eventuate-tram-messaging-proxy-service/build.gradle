@@ -17,13 +17,13 @@ dependencies {
 
     compile('org.apache.curator:curator-recipes:4.2.0')
 
-    testCompile "junit:junit:4.12"
-    testCompile "org.springframework.boot:spring-boot-starter-test"
-    testCompile "io.eventuate.util:eventuate-util-test:$eventuateUtilVersion"
+    testImplementation "junit:junit:4.12"
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
+    testImplementation "io.eventuate.util:eventuate-util-test:$eventuateUtilVersion"
 
-    testCompile "io.eventuate.tram.core:eventuate-tram-spring-producer-jdbc:$eventuateTramVersion"
-    testCompile "io.eventuate.tram.core:eventuate-tram-spring-events-publisher:$eventuateTramVersion"
-    testCompile "io.eventuate.tram.core:eventuate-tram-spring-commands:$eventuateTramVersion"
+    testImplementation "io.eventuate.tram.core:eventuate-tram-spring-producer-jdbc:$eventuateTramVersion"
+    testImplementation "io.eventuate.tram.core:eventuate-tram-spring-events-publisher:$eventuateTramVersion"
+    testImplementation "io.eventuate.tram.core:eventuate-tram-spring-commands:$eventuateTramVersion"
 }
 
 configurations {
