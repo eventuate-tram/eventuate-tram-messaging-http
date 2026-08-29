@@ -5,24 +5,21 @@ import io.eventuate.tram.messaging.proxy.consumer.EventuateMessageSubscriberConf
 import io.eventuate.tram.spring.events.publisher.TramEventsPublisherConfiguration;
 import io.eventuate.tram.spring.messaging.producer.jdbc.TramMessageProducerJdbcConfiguration;
 import io.eventuate.util.test.async.Eventually;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = CustomerEventSubscriberTest.Config.class, webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class CustomerEventSubscriberTest {
   @Configuration
@@ -43,7 +40,7 @@ public class CustomerEventSubscriberTest {
   private String customerValidationFailedOrderId;
 
 
-  @Before
+  @BeforeEach
   public void init() {
     customerCreditReservedOrderId = generateId();
     customerCreditReservationFailedOrderId = generateId();

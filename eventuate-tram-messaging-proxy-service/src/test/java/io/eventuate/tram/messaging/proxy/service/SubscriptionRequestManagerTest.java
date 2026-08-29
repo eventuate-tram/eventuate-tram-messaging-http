@@ -2,13 +2,11 @@ package io.eventuate.tram.messaging.proxy.service;
 
 import io.eventuate.util.test.async.Eventually;
 import org.apache.curator.framework.CuratorFramework;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Collections;
 import java.util.Timer;
@@ -17,7 +15,6 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-@RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = ZkConfig.class)
 public class SubscriptionRequestManagerTest {
   @Autowired
@@ -28,7 +25,7 @@ public class SubscriptionRequestManagerTest {
   private AtomicReference<SubscriptionInfo> removedSubscription;
   private SubscriptionRequestManager subscriptionRequestManager;
 
-  @Before
+  @BeforeEach
   public void init() {
     subscriptionInfo = new SubscriptionInfo(generateId(), generateId(), Collections.singleton(generateId()), generateId());
 
@@ -74,7 +71,7 @@ public class SubscriptionRequestManagerTest {
     }, 0, 1000);
 
     for (int i = 0; i < 180; i++) {
-      Assert.assertNull(removedSubscription.get());
+      Assertions.assertNull(removedSubscription.get());
       Thread.sleep(500);
     }
 
@@ -83,8 +80,8 @@ public class SubscriptionRequestManagerTest {
 
   private void assertSubscriptionAdded() {
     Eventually.eventually(() -> {
-      Assert.assertNull(removedSubscription.get());
-      Assert.assertEquals(subscriptionInfo, addedSubscription.get());
+      Assertions.assertNull(removedSubscription.get());
+      Assertions.assertEquals(subscriptionInfo, addedSubscription.get());
     });
   }
 
@@ -94,7 +91,7 @@ public class SubscriptionRequestManagerTest {
 
   private void assertSubscriptionRemoved(int iterations) {
     Eventually.eventually(iterations, 500, TimeUnit.MILLISECONDS, () ->
-            Assert.assertEquals(subscriptionInfo, removedSubscription.get()));
+            Assertions.assertEquals(subscriptionInfo, removedSubscription.get()));
   }
 
   private String generateId() {

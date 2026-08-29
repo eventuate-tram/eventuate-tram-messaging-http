@@ -1,6 +1,6 @@
 package io.eventuate.tram.messaging.proxy.consumer;
 
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 public class EventSubscriptionData {
   private String aggregate;

@@ -1,17 +1,14 @@
 package io.eventuate.tram.messaging.proxy.service;
 
 import org.apache.curator.framework.CuratorFramework;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.*;
 
-@RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = ZkConfig.class)
 public class SubscriptionPersistanceTest {
   @Autowired
@@ -19,7 +16,7 @@ public class SubscriptionPersistanceTest {
 
   private SubscriptionPersistenceService subscriptionPersistenceService;
 
-  @Before
+  @BeforeEach
   public void init() {
     subscriptionPersistenceService = new SubscriptionPersistenceService(curatorFramework, "/" + generateId());
   }
@@ -29,7 +26,7 @@ public class SubscriptionPersistanceTest {
     Set<SubscriptionInfo> subscriptionInfos = generateSubscriptionInfos();
     subscriptionInfos.forEach(subscriptionPersistenceService::saveSubscriptionInfo);
     Set<SubscriptionInfo> loadedSubscriptionInfos = subscriptionPersistenceService.loadSubscriptionInfos();
-    Assert.assertEquals(subscriptionInfos, loadedSubscriptionInfos);
+    Assertions.assertEquals(subscriptionInfos, loadedSubscriptionInfos);
   }
 
   @Test
@@ -43,7 +40,7 @@ public class SubscriptionPersistanceTest {
 
     Set<SubscriptionInfo>loadedSubscriptionInfos = subscriptionPersistenceService.loadSubscriptionInfos();
 
-    Assert.assertEquals(subscriptionInfos, loadedSubscriptionInfos);
+    Assertions.assertEquals(subscriptionInfos, loadedSubscriptionInfos);
   }
 
   private Set<SubscriptionInfo> generateSubscriptionInfos() {

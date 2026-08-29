@@ -9,12 +9,9 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
 @Configuration
@@ -25,12 +22,6 @@ public class ProxyConfiguration {
   @Bean
   public ProxyProperties proxyProperties() {
     return new ProxyProperties();
-  }
-
-  @Bean
-  public HttpMessageConverters customConverters() {
-    HttpMessageConverter<?> additional = new MappingJackson2HttpMessageConverter();
-    return new HttpMessageConverters(additional);
   }
 
   @Bean

@@ -1,10 +1,7 @@
 package io.eventuate.tram.consumer.http.common;
 
-import io.micronaut.core.annotation.Introspected;
-
 import java.util.Set;
 
-@Introspected
 public class SubscribeRequest {
   private String subscriberId;
   private Set<String> channels;

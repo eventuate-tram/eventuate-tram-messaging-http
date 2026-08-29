@@ -1,6 +1,6 @@
 package io.eventuate.tram.messaging.proxy.service;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 public class SubscriptionLoader {
 
