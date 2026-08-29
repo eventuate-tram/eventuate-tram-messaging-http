@@ -8,15 +8,14 @@ dependencies {
     api "io.eventuate.tram.core:eventuate-tram-events:$eventuateTramVersion"
     api "io.eventuate.tram.core:eventuate-tram-commands:$eventuateTramVersion"
 
-    api "org.springframework.boot:spring-boot-starter:$springBootVersion"
     api "org.springframework.boot:spring-boot-starter-actuator:$springBootVersion"
     api "org.springframework.boot:spring-boot-starter-webmvc:$springBootVersion"
     api "org.springframework.boot:spring-boot-starter-aspectj:$springBootVersion"
-    api "org.springframework.boot:spring-boot-starter-jdbc:$springBootVersion"
 
-    implementation "org.apache.curator:curator-recipes:$curatorVersion"
+    api "org.apache.curator:curator-recipes:$curatorVersion"
     implementation "org.apache.commons:commons-lang3:$commonsLang3Version"
 
+    testImplementation "org.springframework.boot:spring-boot-starter-jdbc:$springBootVersion"
     testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test:$springBootVersion"
     testImplementation "org.springframework.boot:spring-boot-starter-jdbc-test:$springBootVersion"
     testImplementation "io.eventuate.util:eventuate-util-test:$eventuateUtilVersion"
