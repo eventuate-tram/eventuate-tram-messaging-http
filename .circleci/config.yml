@@ -7,5 +7,7 @@ workflows:
     jobs:
       - eventuate-gradle-build-and-test/build-and-test:
           script: ./.circleci/build-and-deploy.sh
+          project_name: eventuate-tram-messaging-http
+          java_version_to_install: "17"
           context:
             - publish
